@@ -1,12 +1,21 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import cn from "classnames";
+import ctd from "country-telephone-data";
 import styles from "./Form.module.sass";
 import Dropdown from "../../../components/Dropdown";
 import TextInput from "../../../components/TextInput";
 
 const navigation = ["Email", "Mobile"];
-const optionsPhone = ["🇺🇸 +1", "🇻🇳 +3", "🇷🇺 +7"];
+function countryCodeToFlagEmoji(countryCode) {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt()));
+}
+const optionsPhone = ctd.allCountries.map((country) => {
+  const flag = countryCodeToFlagEmoji(country.iso2);
+  return `${flag} +${country.dialCode}`;
+});
 
 const Form = ({ onScan }) => {
   const [activeIndex, setActiveIndex] = useState(0);

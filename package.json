@@ -10,6 +10,7 @@
     "axios": "^1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "classnames": "^2.3.2",
+    "country-telephone-data": "^0.6.3",
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-datepicker": "^4.11.0",
