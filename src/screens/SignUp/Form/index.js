@@ -40,6 +40,15 @@ const Form = ({ goNext }) => {
   const isStrongPassword = (pass) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(pass);
 
+  const setSignupContact = (value) => {
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 15);
+
+    document.cookie = `signup_contact=${encodeURIComponent(
+      value
+    )}; expires=${expires.toUTCString()}; path=/`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -107,6 +116,10 @@ const Form = ({ goNext }) => {
         alert(data.message || "Signup failed");
         return;
       }
+
+      setSignupContact(
+        bodyData.authProvider === "EMAIL" ? email : `${phoneCode}${phone}`
+      );
 
       goNext();
     } catch (err) {
@@ -228,7 +241,7 @@ const Form = ({ goNext }) => {
         content="<span>By signing up I agree that I’m 18 years of age or older, to the <a href='/#' target='_blank' rel='noopener noreferrer'>User Agreements</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Cookie Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>E-Sign Consent</a>.<span>"
       />
 
-      <button className={cn("button", styles.button)} type="submit">
+      <button className={cn("button", styles.button)} type="submit" onClick={handleSubmit}>
         Sign up
       </button>
     </form>

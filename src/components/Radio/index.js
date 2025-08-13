@@ -7,7 +7,7 @@ const Radio = ({ className, content, name, value, onChange }) => {
     <label className={cn(styles.radio, className)}>
       <input
         className={styles.input}
-        type="radio"
+        type="checkbox"
         name={name}
         onChange={onChange}
         checked={value}
