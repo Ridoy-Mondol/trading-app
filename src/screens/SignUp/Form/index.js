@@ -6,6 +6,7 @@ import Icon from "../../../components/Icon";
 import Checkbox from "../../../components/Checkbox";
 import Dropdown from "../../../components/Dropdown";
 import TextInput from "../../../components/TextInput";
+import Loader from "../../../components/Loader";
 
 const navigation = ["Email", "Mobile"];
 
@@ -20,12 +21,107 @@ const optionsPhone = ctd.allCountries.map((country) => {
 });
 
 const Form = ({ goNext }) => {
-  const [policy, setPolicy] = useState(true);
+  const [policy, setPolicy] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [phone, setPhone] = useState(optionsPhone[0]);
+  const [phoneCode, setPhoneCode] = useState(optionsPhone[0]);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [cPassword, setCPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const isValidUsername = (name) => /^\w+$/.test(name.trim());
+
+  const isValidPhone = (num) => /^\d{6,15}$/.test(num);
+
+  const isStrongPassword = (pass) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(pass);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (activeIndex === 0 && !email) {
+      return alert("Email is required");
+    }
+    if (activeIndex === 0 && !isValidEmail(email)) {
+      return alert("Invalid email format");
+    }
+    if (activeIndex === 1 && !phone) {
+      return alert("Phone number is required");
+    }
+    if (activeIndex === 1 && !isValidPhone(phone)) {
+      return alert("Invalid phone number");
+    }
+    if (!username) {
+      return alert("Username is required");
+    }
+    if (!isValidUsername(username)) {
+      return alert(
+        "Username must be a single word (letters, numbers, underscores)"
+      );
+    }
+    if (!password) {
+      return alert("Password is required");
+    }
+    if (!isStrongPassword(password)) {
+      return alert(
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
+      );
+    }
+    if (password !== cPassword) {
+      return alert("Passwords do not match");
+    }
+    if (!policy) {
+      return alert("You must agree to the terms and policies");
+    }
+
+    const bodyData =
+      activeIndex === 0
+        ? { authProvider: "EMAIL", email, username, password }
+        : {
+            authProvider: "PHONE",
+            phone: `${phoneCode}${phone}`,
+            username,
+            password,
+          };
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(bodyData),
+        }
+      );
+
+      const data = await res.json();
+
+      setLoading(false);
+      if (!res.ok) {
+        alert(data.message || "Signup failed");
+        return;
+      }
+
+      goNext();
+    } catch (err) {
+      setLoading(false);
+      console.error("Signup error:", err);
+      alert("Something went wrong, please try again");
+    }
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
-    <form className={styles.form}>
+    <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.top}>
         <h3 className={cn("h3", styles.title)}>Sign up</h3>
         <div className={styles.info}>Use Your OpenID to Sign up</div>
@@ -60,9 +156,11 @@ const Form = ({ goNext }) => {
         {activeIndex === 0 && (
           <TextInput
             className={styles.field}
-            label="email"
+            label="Email"
             name="email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
             required
           />
@@ -73,15 +171,17 @@ const Form = ({ goNext }) => {
               <Dropdown
                 className={styles.dropdown}
                 label="mobile"
-                value={phone}
-                setValue={setPhone}
+                value={phoneCode}
+                setValue={setPhoneCode}
                 options={optionsPhone}
               />
             </div>
             <TextInput
               className={styles.field}
               name="phone"
-              type="tel"
+              type="number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>
@@ -93,6 +193,8 @@ const Form = ({ goNext }) => {
         label="Username"
         name="username"
         type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
         required
       />
@@ -101,7 +203,10 @@ const Form = ({ goNext }) => {
         label="Password"
         name="password"
         type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
+        autoComplete="new-password"
         required
         view
       />
@@ -110,7 +215,9 @@ const Form = ({ goNext }) => {
         label="confirm password"
         name="confirm-password"
         type="password"
-        placeholder="Password"
+        value={cPassword}
+        onChange={(e) => setCPassword(e.target.value)}
+        placeholder="Confirm Password"
         required
         view
       />
@@ -120,7 +227,8 @@ const Form = ({ goNext }) => {
         onChange={() => setPolicy(!policy)}
         content="<span>By signing up I agree that I’m 18 years of age or older, to the <a href='/#' target='_blank' rel='noopener noreferrer'>User Agreements</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Cookie Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>E-Sign Consent</a>.<span>"
       />
-      <button className={cn("button", styles.button)} onClick={goNext}>
+
+      <button className={cn("button", styles.button)} type="submit">
         Sign up
       </button>
     </form>

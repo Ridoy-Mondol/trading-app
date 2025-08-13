@@ -62,7 +62,7 @@ const Form = ({ onScan }) => {
             <TextInput
               className={styles.field}
               name="phone"
-              type="tel"
+              type="number"
               required
             />
           </div>
