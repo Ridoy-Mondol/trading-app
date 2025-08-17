@@ -5,6 +5,7 @@ import ctd from "country-telephone-data";
 import styles from "./Form.module.sass";
 import Dropdown from "../../../components/Dropdown";
 import TextInput from "../../../components/TextInput";
+import Loader from "../../../components/Loader";
 
 const navigation = ["Email", "Mobile"];
 function countryCodeToFlagEmoji(countryCode) {
@@ -19,10 +20,82 @@ const optionsPhone = ctd.allCountries.map((country) => {
 
 const Form = ({ onScan }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [phone, setPhone] = useState(optionsPhone[0]);
+  const [phoneCode, setPhoneCode] = useState(optionsPhone[0]);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const isValidPhone = (num) => /^\d{6,15}$/.test(num);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (activeIndex === 0 && !email) {
+      return alert("Email is required");
+    }
+    if (activeIndex === 0 && !isValidEmail(email)) {
+      return alert("Invalid email format");
+    }
+    if (activeIndex === 1 && !phone) {
+      return alert("Phone number is required");
+    }
+    if (activeIndex === 1 && !isValidPhone(phone)) {
+      return alert("Invalid phone number");
+    }
+    if (!password) {
+      return alert("Password is required");
+    }
+
+    const bodyData =
+      activeIndex === 0
+        ? {
+            email,
+            password,
+            authProvider: "EMAIL",
+          }
+        : {
+            phone: `${phoneCode}${phone}`,
+            password,
+            authProvider: "PHONE",
+          };
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(bodyData),
+        }
+      );
+
+      const data = await res.json();
+
+      setLoading(false);
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      window.location.href = "/";
+    } catch (err) {
+      setLoading(false);
+      console.error("Login error:", err);
+      alert("Something went wrong, please try again");
+    }
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
-    <form className={styles.form}>
+    <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.nav}>
         {navigation.map((x, index) => (
           <button
@@ -41,9 +114,11 @@ const Form = ({ onScan }) => {
         {activeIndex === 0 && (
           <TextInput
             className={styles.field}
-            label="email"
+            label="Email"
             name="email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
             required
           />
@@ -54,8 +129,8 @@ const Form = ({ onScan }) => {
               <Dropdown
                 className={styles.dropdown}
                 label="mobile"
-                value={phone}
-                setValue={setPhone}
+                value={phoneCode}
+                setValue={setPhoneCode}
                 options={optionsPhone}
               />
             </div>
@@ -63,6 +138,8 @@ const Form = ({ onScan }) => {
               className={styles.field}
               name="phone"
               type="number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>
@@ -73,6 +150,8 @@ const Form = ({ onScan }) => {
         label="Password"
         name="password"
         type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
         required
         view
@@ -85,7 +164,13 @@ const Form = ({ onScan }) => {
           Forgot password?
         </Link>
       </div>
-      <button className={cn("button", styles.button)}>Login</button>
+      <button
+        className={cn("button", styles.button)}
+        type="submit"
+        onClick={handleSubmit}
+      >
+        Login
+      </button>
     </form>
   );
 };

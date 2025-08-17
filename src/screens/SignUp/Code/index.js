@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import styles from "./Code.module.sass";
 import Loader from "../../../components/Loader";
@@ -7,7 +6,6 @@ import Loader from "../../../components/Loader";
 const Code = () => {
   const [loading, setLoading] = useState(false);
   const inputsRef = useRef([]);
-  const navigate = useNavigate();
 
   const getSignupContact = () => {
     const name = "signup_contact=";
@@ -110,7 +108,7 @@ const Code = () => {
 
         if (response.ok) {
           console.log("✅ OTP verified, user created:", data);
-          navigate("/");
+          window.location.href = "/";
         } else {
           setLoading(false);
           console.error("❌ OTP verification failed:", data.message);

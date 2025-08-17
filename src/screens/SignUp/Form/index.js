@@ -241,7 +241,11 @@ const Form = ({ goNext }) => {
         content="<span>By signing up I agree that I’m 18 years of age or older, to the <a href='/#' target='_blank' rel='noopener noreferrer'>User Agreements</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>Cookie Policy</a>, <a href='/#' target='_blank' rel='noopener noreferrer'>E-Sign Consent</a>.<span>"
       />
 
-      <button className={cn("button", styles.button)} type="submit" onClick={handleSubmit}>
+      <button
+        className={cn("button", styles.button)}
+        type="submit"
+        onClick={handleSubmit}
+      >
         Sign up
       </button>
     </form>
