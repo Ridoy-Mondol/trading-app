@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import OutsideClickHandler from "react-outside-click-handler";
+import { MdLogin } from "react-icons/md";
 import styles from "./User.module.sass";
 import Icon from "../../Icon";
 import Theme from "../../Theme";
+import { useAuth } from "../../../context/AuthContext";
 
 const items = [
   {
@@ -36,15 +38,38 @@ const items = [
     icon: "theme-dark",
     content: "Switch dark/light mode",
   },
-  {
-    title: "Log out",
-    icon: "exit",
-    url: "/",
-  },
 ];
 
 const User = ({ className }) => {
   const [visible, setVisible] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Logout failed:", data.message || response.statusText);
+        return;
+      }
+
+      window.location.href = "/sign-in";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const handleLogin = () => {
+    navigate("/sign-in");
+  };
 
   return (
     <OutsideClickHandler onOutsideClick={() => setVisible(false)}>
@@ -59,7 +84,7 @@ const User = ({ className }) => {
                 <Link
                   className={styles.item}
                   to={x.url}
-                  onClick={() => setVisible(!visible)}
+                  onClick={() => setVisible(false)}
                   key={index}
                 >
                   <div className={styles.icon}>
@@ -78,12 +103,36 @@ const User = ({ className }) => {
                   <div className={styles.details}>
                     <div className={styles.line}>
                       <div className={styles.title}>{x.title}</div>
-                      <Theme className={styles.theme} small />
+                      {x.icon === "theme-dark" && (
+                        <Theme className={styles.theme} small />
+                      )}
                     </div>
-                    <div className={styles.content}>{x.content}</div>
+                    {x.content && (
+                      <div className={styles.content}>{x.content}</div>
+                    )}
                   </div>
                 </div>
               )
+            )}
+
+            {isAuthenticated ? (
+              <button className={styles.item} onClick={handleLogout}>
+                <div className={styles.icon}>
+                  <Icon name="exit" size="20" />
+                </div>
+                <div className={styles.details}>
+                  <div className={styles.title}>Log out</div>
+                </div>
+              </button>
+            ) : (
+              <button className={styles.item} onClick={handleLogin}>
+                <div className={styles.icon}>
+                  <MdLogin size={20} />
+                </div>
+                <div className={styles.details}>
+                  <div className={styles.title}>Login</div>
+                </div>
+              </button>
             )}
           </div>
         </div>
