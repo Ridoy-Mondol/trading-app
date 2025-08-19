@@ -12,10 +12,29 @@
     text-align: center
 
 .info
-    margin-bottom: 12px
+    margin-bottom: 20px
     text-align: center
     +caption-2
     color: $n4
+
+
+.btns
+    display: flex
+    justify-content: center
+    margin: 0 -10px
+    +m
+        margin: 0 -6px
+    .button
+        flex: 0 0 calc(50% - 20px)
+        margin: 0 10px
+        +m
+            flex: 0 0 calc(50% - 12px)
+            margin: 0 6px
+        &:not(:last-child)
+            margin-right: 12px
+            +m
+                margin-right: 6px
+
 
 .correct
     display: flex

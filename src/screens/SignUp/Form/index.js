@@ -136,10 +136,16 @@ const Form = ({ goNext }) => {
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.top}>
-        <h3 className={cn("h3", styles.title)}>Sign up</h3>
+        <h3 className={cn("h3", styles.title)}>Sign up XPRTrade</h3>
         <div className={styles.info}>Use Your OpenID to Sign up</div>
         <div className={styles.btns}>
-          <button className={cn("button", styles.button)}>
+          <button
+            className={cn("button", styles.button)}
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = `${process.env.REACT_APP_API_BASE_URL}/api/auth/google`;
+            }}
+          >
             <Icon name="google" size="16" />
             <span>Google</span>
           </button>

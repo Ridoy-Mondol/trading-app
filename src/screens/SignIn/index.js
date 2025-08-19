@@ -17,15 +17,24 @@ const SignIn = () => {
     >
       <div className={styles.login}>
         <div className={styles.top}>
-          <h3 className={cn("h3", styles.title)}>Sign in to BitCloud</h3>
-          <div className={styles.info}>
-            Please ensure you are visiting the correct url.
-          </div>
-          <div className={styles.correct}>
-            <Icon name="lock" size="24" />
-            <div className={styles.url}>
-              https://<span>accounts.bitcloud.com/login</span>
-            </div>
+          <h3 className={cn("h3", styles.title)}>Sign in XPRTrade</h3>
+          <div className={styles.info}>Use Your OpenID to Sign in</div>
+
+          <div className={styles.btns}>
+            <button
+              className={cn("button", styles.button)}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `${process.env.REACT_APP_API_BASE_URL}/api/auth/google`;
+              }}
+            >
+              <Icon name="google" size="16" />
+              <span>Google</span>
+            </button>
+            <button className={cn("button-black", styles.button)}>
+              <Icon name="apple" size="16" />
+              <span>Apple</span>
+            </button>
           </div>
         </div>
         {scan ? <Scan /> : <Form onScan={() => setScan(true)} />}
