@@ -18,7 +18,7 @@ const optionsPhone = ctd.allCountries.map((country) => {
   return `${flag} +${country.dialCode}`;
 });
 
-const Form = ({ onScan }) => {
+const Form = ({ onScan, parentLoading }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [phoneCode, setPhoneCode] = useState(optionsPhone[0]);
   const [email, setEmail] = useState("");
@@ -90,7 +90,7 @@ const Form = ({ onScan }) => {
     }
   };
 
-  if (loading) {
+  if (loading || parentLoading) {
     return <Loader />;
   }
 
