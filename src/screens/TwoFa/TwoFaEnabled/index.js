@@ -1,10 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import cn from "classnames";
 import styles from "./TwoFaEnabled.module.sass";
 import TextInput from "../../../components/TextInput";
 import Icon from "../../../components/Icon";
+import Modal from "../../../components/Modal";
 
 const TwoFaEnabled = ({ goDisabled }) => {
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  const handleDisable = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/2fa/disable`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, password }),
+        }
+      );
+      const data = await res.json();
+      setMessage(data.message);
+      setShowModal(true);
+      if (res.ok) {
+        goDisabled?.();
+        setPassword("");
+        setCode("");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Error verifying 2FA");
+      setShowModal(true);
+    }
+  };
+
   return (
     <div>
       <div className={cn("h3", styles.title)}>
@@ -31,6 +63,8 @@ const TwoFaEnabled = ({ goDisabled }) => {
           name="password"
           type="password"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
           view
         />
@@ -39,12 +73,26 @@ const TwoFaEnabled = ({ goDisabled }) => {
           label="2FA code"
           name="code"
           type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
           required
         />
       </div>
-      <button className={cn("button-red", styles.button)} onClick={goDisabled}>
+      <button
+        className={cn("button-red", styles.button)}
+        onClick={handleDisable}
+        disabled={!code || !password}
+      >
         Disable 2FA
       </button>
+
+      <Modal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        title="Notification"
+      >
+        <p>{message}</p>
+      </Modal>
     </div>
   );
 };

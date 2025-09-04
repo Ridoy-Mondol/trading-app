@@ -7,7 +7,7 @@ import Modal from "../../../components/Modal";
 
 const TwoFaDisabled = ({ goEnabled }) => {
   const [qrCode, setQrCode] = useState(null);
-  const [token, setToken] = useState("");
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -43,7 +43,7 @@ const TwoFaDisabled = ({ goEnabled }) => {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, password }),
+          body: JSON.stringify({ code, password }),
         }
       );
       const data = await res.json();
@@ -52,7 +52,7 @@ const TwoFaDisabled = ({ goEnabled }) => {
       if (res.ok) {
         goEnabled?.();
         setPassword("");
-        setToken("");
+        setCode("");
       }
     } catch (err) {
       console.error(err);
@@ -110,8 +110,8 @@ const TwoFaDisabled = ({ goEnabled }) => {
             name="otp"
             type="text"
             placeholder="Enter 6-digit code"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
             required
           />
         </>
@@ -129,7 +129,7 @@ const TwoFaDisabled = ({ goEnabled }) => {
           <button
             className={cn("button-green", styles.button)}
             onClick={handleVerify}
-            disabled={!password || !token}
+            disabled={!password || !code}
           >
             Verify 2FA
           </button>
