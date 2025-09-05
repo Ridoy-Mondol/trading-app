@@ -4,6 +4,8 @@ import styles from "./ProfileInfo.module.sass";
 import Profile from "../../components/Profile";
 import Dropdown from "../../components/Dropdown";
 import Switch from "../../components/Switch";
+import { useUser } from "../../context/UserContext";
+import Loader from "../../components/Loader";
 
 const breadcrumbs = [
   {
@@ -59,6 +61,8 @@ const ProfileInfo = () => {
 
   const [selectedFilters, setSelectedFilters] = useState([]);
 
+  const { user, loadingUser } = useUser();
+
   const handleChange = (id) => {
     if (selectedFilters.includes(id)) {
       setSelectedFilters(selectedFilters.filter((x) => x !== id));
@@ -67,12 +71,18 @@ const ProfileInfo = () => {
     }
   };
 
+  if (loadingUser) {
+    return <Loader />;
+  }
+
   return (
     <Profile title="Profile info" breadcrumbs={breadcrumbs}>
       <div className={styles.head}>
         <div className={styles.details}>
-          <div className={styles.user}>Breanne Schinner</div>
-          <div className={styles.email}>schinner@ui8.net</div>
+          <div className={styles.user}>{user?.username}</div>
+          <div className={styles.email}>
+            {user?.email || user?.phone || user?.xprWalletAddr}
+          </div>
           <div className={styles.level}>Level 2 verified</div>
         </div>
         <Dropdown

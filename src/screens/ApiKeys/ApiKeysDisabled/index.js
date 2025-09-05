@@ -4,7 +4,7 @@ import styles from "./ApiKeysDisabled.module.sass";
 import TextInput from "../../../components/TextInput";
 import Icon from "../../../components/Icon";
 
-const ApiKeysDisabled = ({ goNext }) => {
+const ApiKeysDisabled = ({ goNext, user }) => {
   return (
     <div>
       <div className={styles.stage}>
@@ -14,8 +14,8 @@ const ApiKeysDisabled = ({ goNext }) => {
         API Access is <span>Disabled</span>
       </div>
       <div className={styles.email}>
-        <Icon name="email" size="24" />
-        schinner@ui8.net
+        <Icon name="user" size="24" />
+        {user?.username}
       </div>
       <div className={styles.subtitle}>Enable API keys</div>
       <div className={styles.info}>

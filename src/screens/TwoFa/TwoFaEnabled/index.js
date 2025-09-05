@@ -5,7 +5,7 @@ import TextInput from "../../../components/TextInput";
 import Icon from "../../../components/Icon";
 import Modal from "../../../components/Modal";
 
-const TwoFaEnabled = ({ goDisabled }) => {
+const TwoFaEnabled = ({ goDisabled, user }) => {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -53,8 +53,8 @@ const TwoFaEnabled = ({ goDisabled }) => {
         Authenticator app to Disable the 2FA verification
       </div>
       <div className={styles.email}>
-        <Icon name="email" size="24" />
-        schinner@ui8.net
+        <Icon name="user" size="24" />
+        {user?.username}
       </div>
       <div className={styles.row}>
         <TextInput

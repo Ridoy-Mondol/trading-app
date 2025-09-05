@@ -5,7 +5,7 @@ import TextInput from "../../../components/TextInput";
 import Icon from "../../../components/Icon";
 import Modal from "../../../components/Modal";
 
-const TwoFaDisabled = ({ goEnabled }) => {
+const TwoFaDisabled = ({ goEnabled, user }) => {
   const [qrCode, setQrCode] = useState(null);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -77,8 +77,8 @@ const TwoFaDisabled = ({ goEnabled }) => {
         setup
       </div>
       <div className={styles.email}>
-        <Icon name="email" size="24" />
-        schinner@ui8.net
+        <Icon name="user" size="24" />
+        {user?.username}
       </div>
       <div className={styles.box}>
         <div className={styles.details}>

@@ -7,6 +7,7 @@ import styles from "./User.module.sass";
 import Icon from "../../Icon";
 import Theme from "../../Theme";
 import { useAuth } from "../../../context/AuthContext";
+import { useUser } from "../../../context/UserContext";
 
 const items = [
   {
@@ -43,6 +44,7 @@ const items = [
 const User = ({ className }) => {
   const [visible, setVisible] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { user, loadingUser } = useUser();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -75,7 +77,7 @@ const User = ({ className }) => {
     <OutsideClickHandler onOutsideClick={() => setVisible(false)}>
       <div className={cn(className, styles.user, { [styles.active]: visible })}>
         <button className={styles.head} onClick={() => setVisible(!visible)}>
-          <img src="/images/content/avatar-user.jpg" alt="Avatar" />
+          <img src={user?.photoUrl ? user?.photoUrl : "/images/content/avatar-user.jpg"} alt="Avatar" />
         </button>
         <div className={styles.body}>
           <div className={styles.menu}>

@@ -3,7 +3,7 @@ import cn from "classnames";
 import styles from "./ApiKeysConfirm.module.sass";
 import Icon from "../../../components/Icon";
 
-const ApiKeysConfirm = ({ goNext }) => {
+const ApiKeysConfirm = ({ goNext, user }) => {
   return (
     <div>
       <div className={styles.preview}>
@@ -19,7 +19,7 @@ const ApiKeysConfirm = ({ goNext }) => {
       </div>
       <div className={styles.email}>
         <Icon name="email" size="24" />
-        schinner@ui8.net
+        {user?.email || user.phone}
       </div>
       <div className={styles.btns}>
         <button className={cn("button-stroke", styles.button)} onClick={goNext}>
