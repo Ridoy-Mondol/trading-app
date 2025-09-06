@@ -126,6 +126,59 @@ const Verification = ({ goNext }) => {
     }
   };
 
+  const resendCode = async (e) => {
+    e.preventDefault();
+
+    if (!contact) {
+      return;
+    }
+
+    const bodyData = contact.includes("@")
+      ? {
+          authProvider: "EMAIL",
+          email: contact,
+        }
+      : {
+          authProvider: "PHONE",
+          phone: contact,
+        };
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/password/forgot/request`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(bodyData),
+        }
+      );
+
+      const data = await res.json();
+
+      setLoading(false);
+      if (!res.ok) {
+        alert(data.message || "Something went wrong!");
+        return;
+      }
+
+      if (contact.includes("@")) {
+        alert(
+          `📧 A new verification code has been sent to your email: ${contact}`
+        );
+      } else {
+        alert(
+          `📱 A new verification code has been sent to your phone number: ${contact}`
+        );
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error("OTP sending error:", err);
+      alert("Something went wrong, please try again");
+    }
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -157,7 +210,10 @@ const Verification = ({ goNext }) => {
       </div>
 
       <div className={styles.btns}>
-        <button className={cn("button-stroke button-small", styles.button)}>
+        <button
+          className={cn("button-stroke button-small", styles.button)}
+          onClick={resendCode}
+        >
           Resend code
         </button>
         <button
