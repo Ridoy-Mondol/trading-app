@@ -92,7 +92,6 @@ const Code = () => {
       try {
         setLoading(true);
         clearInputs();
-        console.log("otp submitted", code);
         const response = await fetch(
           `${process.env.REACT_APP_API_BASE_URL}/api/signup/verify-otp`,
           {
@@ -107,7 +106,6 @@ const Code = () => {
         setLoading(false);
 
         if (response.ok) {
-          console.log("✅ OTP verified, user created:", data);
           window.location.href = "/";
         } else {
           setLoading(false);

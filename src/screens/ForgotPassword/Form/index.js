@@ -37,6 +37,8 @@ const Form = ({ goNext }) => {
     document.cookie = `forget_contact=${encodeURIComponent(
       value
     )}; expires=${expires.toUTCString()}; path=/`;
+
+    document.cookie = `index=1; expires=${expires.toUTCString()}; path=/`;
   };
 
   const handleSubmit = async (e) => {
