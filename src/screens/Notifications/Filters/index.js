@@ -32,10 +32,16 @@ const Filters = ({
         ))}
       </div>
       <div className={styles.btns}>
-        <button className={cn("button-stroke button-small", styles.button)}>
+        <button
+          className={cn("button-stroke button-small", styles.button)}
+          onClick={() => setSelectedFilters(filters)}
+        >
           Select all
         </button>
-        <button className={cn("button-stroke button-small", styles.button)}>
+        <button
+          className={cn("button-stroke button-small", styles.button)}
+          onClick={() => setSelectedFilters([])}
+        >
           Unslect all
         </button>
       </div>

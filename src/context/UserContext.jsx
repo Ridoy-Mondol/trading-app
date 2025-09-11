@@ -25,7 +25,6 @@ export const UserProvider = ({ children }) => {
         );
 
         const data = await response.json();
-        console.log(data.user);
 
         if (response.ok && data.success) {
           setUser(data.user || null);
