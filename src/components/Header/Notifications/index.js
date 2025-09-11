@@ -4,12 +4,15 @@ import cn from "classnames";
 import OutsideClickHandler from "react-outside-click-handler";
 import styles from "./Notifications.module.sass";
 import Icon from "../../Icon";
+import useNotifications from "../../../hooks/useNotifications";
+import { useUser } from "../../../context/UserContext";
 
 const Notifications = ({ className }) => {
   const [visible, setVisible] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const { user, loadingUser } = useUser();
   const limit = 5;
   const fetchedPages = useRef(new Set());
   const loadNotifications = async (pageNumber) => {
@@ -47,6 +50,18 @@ const Notifications = ({ className }) => {
   useEffect(() => {
     loadNotifications(1);
   }, []);
+
+  const addNotification = (notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+  };
+
+  const updateNotifications = (data) => {
+    if (data.type === "bulk-mark-read") {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    }
+  };
+
+  useNotifications(user?.id, addNotification, updateNotifications);
 
   const markAllAsRead = async () => {
     setLoading(true);

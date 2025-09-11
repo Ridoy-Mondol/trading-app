@@ -5,6 +5,8 @@ import Icon from "../../components/Icon";
 import Item from "./Item";
 import Filters from "./Filters";
 import Actions from "../../components/Actions";
+import useNotifications from "../../hooks/useNotifications";
+import { useUser } from "../../context/UserContext";
 
 const filters = [
   "Security",
@@ -23,9 +25,10 @@ const Notifications = () => {
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
+  const { user, loadingUser } = useUser();
   const limit = 10;
   const fetchedPages = useRef(new Set());
 
@@ -82,6 +85,18 @@ const Notifications = () => {
     loadNotifications(1);
   }, [selectedFilters]);
 
+  const addNotification = (notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+  };
+
+  const updateNotifications = (data) => {
+    if (data.type === "bulk-mark-read") {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    }
+  };
+
+  useNotifications(user?.id, addNotification, updateNotifications);
+
   const markAllAsRead = async () => {
     setLoading(true);
     try {
@@ -126,9 +141,6 @@ const Notifications = () => {
               onClick={markAllAsRead}
             >
               Mark all as read
-            </button>
-            <button className={cn("button-stroke button-small", styles.button)}>
-              Clear all
             </button>
           </div>
           <div className={styles.row}>
