@@ -1,9 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import styles from "./Main.module.sass";
 import Play from "../../../components/Play";
+import { useUser } from "../../../context/UserContext";
 
 const Main = ({ scrollToRef, scrollToRefCatalog }) => {
+  const navigate = useNavigate();
+  const { user, loadingUser } = useUser();
+
   return (
     <div className={cn("section", styles.main)}>
       <div className={cn("container", styles.container)}>
@@ -19,16 +24,14 @@ const Main = ({ scrollToRef, scrollToRefCatalog }) => {
             >
               Learn now
             </button>
-            <button
-              className={cn("button-stroke", styles.button)}
-              onClick={() =>
-                scrollToRefCatalog.current.scrollIntoView({
-                  behavior: "smooth",
-                })
-              }
-            >
-              Video tutorial
-            </button>
+            {(user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
+              <button
+                className={cn("button-stroke", styles.button)}
+                onClick={() => navigate("/learn-crypto/write")}
+              >
+                Write Tutorial
+              </button>
+            )}
           </div>
         </div>
         <div className={styles.video}>

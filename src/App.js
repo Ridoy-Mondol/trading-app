@@ -5,6 +5,7 @@ import Home from "./screens/Home";
 import Market from "./screens/Market";
 import LearnCrypto from "./screens/LearnCrypto";
 import LearnCryptoDetails from "./screens/LearnCryptoDetails";
+import LearnCryptoWrite from "./screens/LearnCryptoWrite";
 import Contact from "./screens/Contact";
 import Notifications from "./screens/Notifications";
 import Activity from "./screens/Activity";
@@ -61,6 +62,14 @@ function App() {
           element={
             <Page>
               <LearnCryptoDetails />
+            </Page>
+          }
+        />
+        <Route
+          path="learn-crypto/write"
+          element={
+            <Page>
+              <LearnCryptoWrite />
             </Page>
           }
         />
