@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import cn from "classnames";
 import { Editor } from "@tinymce/tinymce-react";
+import useDarkMode from "use-dark-mode";
 import styles from "./LearnCryptoWrite.module.sass";
 import TextInput from "../../components/TextInput";
 import Loader from "../../components/Loader";
 import Dropdown from "../../components/Dropdown";
-import useDarkMode from "use-dark-mode";
+import { uploadFileToSupabase } from "../../utilities/uploadToSupabase";
 
 const categories = [
   "Trading",
@@ -41,21 +42,44 @@ const LearnCryptoWrite = ({ onSubmitSuccess }) => {
       return;
     }
 
+    if (!file) {
+      alert("You must upload an image file");
+      return;
+    }
+
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+      alert("Only JPG and PNG images are allowed");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image size must be less than 2MB");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("category", category);
-      formData.append("content", content);
-      if (file) formData.append("file", file);
+      const fileUrl = await uploadFileToSupabase(file, "Snipverse_uploads");
+
+      if (!fileUrl) {
+        alert("File upload failed");
+        setLoading(false);
+        return;
+      }
 
       const res = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blogs`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/blogs/write`,
         {
           method: "POST",
           credentials: "include",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            category,
+            content,
+            fileUrl,
+          }),
         }
       );
 
@@ -68,12 +92,14 @@ const LearnCryptoWrite = ({ onSubmitSuccess }) => {
       }
 
       onSubmitSuccess?.();
+      alert("Congratulations! Your new blog has been published successfully")
       setTitle("");
       setCategory(categories[0]);
       setContent("");
       setFile(null);
     } catch (err) {
       console.error("Submit tutorial error:", err);
+      setLoading(false);
       alert("Something went wrong. Please try again.");
     }
   };
