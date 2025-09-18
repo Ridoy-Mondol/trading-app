@@ -10,7 +10,11 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!isAuthenticated || loading) {
+      if (loading) {
+        return;
+      }
+      if (!isAuthenticated) {
+        setUser(null);
         setLoadingUser(false);
         return;
       }

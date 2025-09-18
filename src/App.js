@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./styles/app.sass";
 import Page from "./components/Page";
 import Home from "./screens/Home";
@@ -28,8 +28,11 @@ import SignUp from "./screens/SignUp";
 import ForgotPassword from "./screens/ForgotPassword";
 import PageList from "./screens/PageList";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useUser } from "./context/UserContext";
+import Loader from "./components/Loader";
 
 function App() {
+  const { user, loadingUser } = useUser();
   return (
     <Routes>
       <Route path="/">
@@ -68,9 +71,25 @@ function App() {
         <Route
           path="learn-crypto/write"
           element={
-            <Page>
-              <LearnCryptoWrite />
-            </Page>
+            loadingUser ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100vh",
+                  width: "100%",
+                }}
+              >
+                <Loader />
+              </div>
+            ) : !user || user.role === "USER" ? (
+              <Navigate to="/" replace />
+            ) : (
+              <Page>
+                <LearnCryptoWrite />
+              </Page>
+            )
           }
         />
         <Route
