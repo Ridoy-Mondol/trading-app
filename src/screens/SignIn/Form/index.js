@@ -91,7 +91,19 @@ const Form = ({ onScan, parentLoading }) => {
   };
 
   if (loading || parentLoading) {
-    return <Loader />;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100%",
+        }}
+      >
+        <Loader />
+      </div>
+    );
   }
 
   return (

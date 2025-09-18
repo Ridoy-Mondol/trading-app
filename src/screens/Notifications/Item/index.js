@@ -6,7 +6,19 @@ import Loader from "../../../components/Loader";
 
 const Item = ({ className, item, index, loading }) => {
   if (loading) {
-    return <Loader />;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100%",
+        }}
+      >
+        <Loader />
+      </div>
+    );
   }
   return (
     <div

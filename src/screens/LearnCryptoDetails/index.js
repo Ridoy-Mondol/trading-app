@@ -28,7 +28,20 @@ const LearnCrypto = () => {
     fetchBlog();
   }, [id]);
 
-  if (loading) return <Loader />;
+  if (loading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100%",
+        }}
+      >
+        <Loader />
+      </div>
+    );
 
   return (
     <>

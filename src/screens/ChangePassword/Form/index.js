@@ -72,9 +72,18 @@ const Form = ({ goFinish }) => {
     }
   };
 
-  {
-    loading && <Loader />;
-  }
+  if (loading)
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        width: "100%",
+      }}
+    >
+      <Loader />
+    </div>;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
