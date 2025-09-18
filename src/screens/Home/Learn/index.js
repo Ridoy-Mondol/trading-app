@@ -120,7 +120,11 @@ const Learn = ({ scrollToRef }) => {
                   </div>
                   <div className={styles.line}>
                     <div className={styles.wrap}>
-                      <div className={styles.subtitle}>{x.title}</div>
+                      <div className={styles.subtitle}>
+                        {x.title.length > 35
+                          ? x.title.slice(0, 35) + "..."
+                          : x.title}
+                      </div>
                       <div
                         className={styles.content}
                         dangerouslySetInnerHTML={{
@@ -147,7 +151,11 @@ const Learn = ({ scrollToRef }) => {
                     <img srcSet={`${x.media} 2x`} src={x.media} alt="Card" />
                   </div>
                   <div className={styles.details}>
-                    <div className={styles.subtitle}>{x.title}</div>
+                    <div className={styles.subtitle}>
+                      {x.title.length > 35
+                        ? x.title.slice(0, 35) + "..."
+                        : x.title}
+                    </div>
                     <div
                       className={styles.content}
                       dangerouslySetInnerHTML={{

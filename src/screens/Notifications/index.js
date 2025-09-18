@@ -17,6 +17,7 @@ const filters = [
   "Referral",
   "API",
   "News",
+  "Content",
   "Other",
 ];
 
