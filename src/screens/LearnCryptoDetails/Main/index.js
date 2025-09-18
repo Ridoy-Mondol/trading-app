@@ -2,36 +2,28 @@ import React from "react";
 import cn from "classnames";
 import styles from "./Main.module.sass";
 import Breadcrumbs from "../../../components/Breadcrumbs";
-import Player from "../../../components/Player";
 
-const breadcrumbs = [
-  {
-    title: "Learn crypto",
-    url: "/learn-crypto",
-  },
-  {
-    title: "Trading",
-    url: "/learn-crypto",
-  },
-  {
-    title: "Bitcoin",
-  },
-];
-
-const Main = () => {
+const Main = ({ blog }) => {
+  const breadcrumbs = [
+    {
+      title: "Learn crypto",
+      url: "/learn-crypto",
+    },
+    {
+      title: blog.category,
+      url: "/learn-crypto",
+    },
+  ];
   return (
     <div className={cn("section", styles.main)}>
       <div className={cn("container", styles.container)}>
         <div className={styles.head}>
-          <h1 className={cn("h1", styles.title)}>
-            A beginner’s guide to trading view
-          </h1>
+          <h1 className={cn("h1", styles.title)}>{blog.title}</h1>
           <Breadcrumbs className={styles.breadcrumbs} items={breadcrumbs} />
         </div>
-        <Player
-          className={styles.player}
-          image="/images/content/video-bg.jpg"
-        />
+        <div className={styles.media}>
+          <img src={blog.media} alt="Preview" />
+        </div>
       </div>
     </div>
   );

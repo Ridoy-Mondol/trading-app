@@ -1,46 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Learn.module.sass";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
 import Icon from "../../../components/Icon";
-import Play from "../../../components/Play";
 
-const navigation = ["All", "Bitcoin", "Blockchain", "Tutorial"];
-
-const items = [
-  {
-    title: "Leveraged tokens now available",
-    content: "Good things come in 3s. Get 3x Leveraged tokens now.",
-    image: "/images/content/learn-pic-1.jpg",
-    image2x: "/images/content/learn-pic-1@2x.jpg",
-    url: "/learn-crypto-details",
-  },
-  {
-    title: "Leveraged tokens now available",
-    content: "Good things come in 3s. Get 3x Leveraged tokens now.",
-    date: "Jun 1, 2021",
-    image: "/images/content/learn-pic-2.jpg",
-    image2x: "/images/content/learn-pic-2@2x.jpg",
-    url: "/learn-crypto-details",
-  },
-  {
-    title: "Leveraged tokens now available",
-    content: "Good things come in 3s. Get 3x Leveraged tokens now.",
-    date: "Jun 1, 2021",
-    play: true,
-    image: "/images/content/learn-pic-4.jpg",
-    image2x: "/images/content/learn-pic-4@2x.jpg",
-    url: "/learn-crypto-details",
-  },
-  {
-    title: "Leveraged tokens now available",
-    content: "Good things come in 3s. Get 3x Leveraged tokens now.",
-    date: "Jun 1, 2021",
-    image: "/images/content/learn-pic-3.jpg",
-    image2x: "/images/content/learn-pic-3@2x.jpg",
-    url: "/learn-crypto-details",
-  },
+const categories = [
+  "Trading",
+  "News",
+  "Bitcoin",
+  "Ethereum",
+  "Altcoins",
+  "Blockchain",
+  "XPR",
 ];
 
 const SlickArrow = ({ currentSlide, slideCount, children, ...props }) => (
@@ -49,6 +21,8 @@ const SlickArrow = ({ currentSlide, slideCount, children, ...props }) => (
 
 const Learn = ({ scrollToRef }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [navigation, setNavigation] = useState(categories[0]);
+  const [blogs, setBlogs] = useState([]);
 
   const settings = {
     infinite: true,
@@ -86,6 +60,22 @@ const Learn = ({ scrollToRef }) => {
     ],
   };
 
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.REACT_APP_API_BASE_URL}/api/blogs?page=1&limit=3&category=${navigation}`
+        );
+        const data = await res.json();
+        setBlogs(data.blogs || []);
+      } catch (err) {
+        console.error("Error fetching blogs:", err);
+      }
+    };
+
+    fetchBlogs();
+  }, [navigation]);
+
   return (
     <div className={cn("section", styles.section)} ref={scrollToRef}>
       <div className={cn("container", styles.container)}>
@@ -93,12 +83,15 @@ const Learn = ({ scrollToRef }) => {
           <div className={styles.wrap}>
             <h2 className={cn("h2", styles.title)}>Learn crypto</h2>
             <div className={styles.nav}>
-              {navigation.map((x, index) => (
+              {categories.map((x, index) => (
                 <button
                   className={cn(styles.link, {
                     [styles.active]: index === activeIndex,
                   })}
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    setNavigation(categories[index]);
+                  }}
                   key={index}
                 >
                   {x}
@@ -115,17 +108,28 @@ const Learn = ({ scrollToRef }) => {
         </div>
         <div className={styles.wrapper}>
           <Slider className={cn("learn-slider", styles.slider)} {...settings}>
-            {items.map((x, index) =>
+            {blogs.map((x, index) =>
               index < 1 ? (
-                <Link className={styles.item} to={x.url} key={index}>
-                  <div className={styles.preview}>
-                    <img srcSet={`${x.image2x} 2x`} src={x.image} alt="Card" />
-                    {x.play && <Play small />}
+                <Link
+                  className={styles.item}
+                  to={`/learn-crypto-details/${x.id}`}
+                  key={index}
+                >
+                  <div className={cn(styles.preview, styles.featuredImg)}>
+                    <img srcSet={`${x.media} 2x`} src={x.media} alt="Card" />
                   </div>
                   <div className={styles.line}>
                     <div className={styles.wrap}>
                       <div className={styles.subtitle}>{x.title}</div>
-                      <div className={styles.content}>{x.content}</div>
+                      <div
+                        className={styles.content}
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            x.content.length > 120
+                              ? x.content.slice(0, 120) + "..."
+                              : x.content,
+                        }}
+                      />
                     </div>
                     <button className={cn("button-stroke", styles.button)}>
                       <span>Learn more</span>
@@ -134,15 +138,34 @@ const Learn = ({ scrollToRef }) => {
                   </div>
                 </Link>
               ) : (
-                <Link className={styles.item} to={x.url} key={index}>
+                <Link
+                  className={styles.item}
+                  to={`/learn-crypto-details/${x.id}`}
+                  key={index}
+                >
                   <div className={styles.preview}>
-                    <img srcSet={`${x.image2x} 2x`} src={x.image} alt="Card" />
-                    {x.play && <Play small />}
+                    <img srcSet={`${x.media} 2x`} src={x.media} alt="Card" />
                   </div>
                   <div className={styles.details}>
                     <div className={styles.subtitle}>{x.title}</div>
-                    <div className={styles.content}>{x.content}</div>
-                    {x.date && <div className={styles.date}>{x.date}</div>}
+                    <div
+                      className={styles.content}
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          x.content.length > 120
+                            ? x.content.slice(0, 120) + "..."
+                            : x.content,
+                      }}
+                    />
+                    {x.createdAt && (
+                      <div className={styles.date}>
+                        {new Date(x.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </div>
+                    )}
                   </div>
                 </Link>
               )

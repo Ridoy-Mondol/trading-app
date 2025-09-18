@@ -10,16 +10,12 @@ import { uploadFileToSupabase } from "../../utilities/uploadToSupabase";
 
 const categories = [
   "Trading",
-  "Trading Basics",
-  "Market News",
+  "News",
   "Bitcoin",
   "Ethereum",
   "Altcoins",
   "Blockchain",
-  "DeFi",
-  "NFTs",
-  "XPR Network",
-  "SNIPS",
+  "XPR",
 ];
 
 const LearnCryptoWrite = ({ onSubmitSuccess }) => {
@@ -92,7 +88,7 @@ const LearnCryptoWrite = ({ onSubmitSuccess }) => {
       }
 
       onSubmitSuccess?.();
-      alert("Congratulations! Your new blog has been published successfully")
+      alert("Congratulations! Your new blog has been published successfully");
       setTitle("");
       setCategory(categories[0]);
       setContent("");

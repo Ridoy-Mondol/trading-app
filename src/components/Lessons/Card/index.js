@@ -1,7 +1,6 @@
 import React from "react";
 import cn from "classnames";
 import styles from "./Card.module.sass";
-import Play from "../../../components/Play";
 import { Link } from "react-router-dom";
 
 const Card = ({ className, item }) => {
@@ -9,7 +8,6 @@ const Card = ({ className, item }) => {
     <Link className={cn(className, styles.card)} to={item.url}>
       <div className={styles.preview}>
         <img srcSet={`${item.image2x} 2x`} src={item.image} alt="Card" />
-        {item.play && <Play className="play" small />}
       </div>
       {item.categoryText && (
         <div

@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import styles from "./Main.module.sass";
-import Play from "../../../components/Play";
 import { useUser } from "../../../context/UserContext";
 
 const Main = ({ scrollToRef, scrollToRefCatalog }) => {
@@ -14,7 +13,9 @@ const Main = ({ scrollToRef, scrollToRefCatalog }) => {
       <div className={cn("container", styles.container)}>
         <div className={styles.head}>
           <h1 className={cn("h1", styles.title)}>Blockchain & Crypto</h1>
-          <div className={styles.info}>A Beginner’s Guide to TradingView</div>
+          <div className={styles.info}>
+            Learn, Trade, and Stay Ahead in the Crypto Market
+          </div>
           <div className={styles.btns}>
             <button
               className={cn("button", styles.button)}
@@ -35,8 +36,7 @@ const Main = ({ scrollToRef, scrollToRefCatalog }) => {
           </div>
         </div>
         <div className={styles.video}>
-          <img src="/images/content/video-bg.jpg" alt="Preview" />
-          <Play />
+          <img src="/images/content/crypto.webp" alt="Preview" />
         </div>
       </div>
     </div>

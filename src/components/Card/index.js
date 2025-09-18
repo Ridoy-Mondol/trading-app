@@ -1,51 +1,56 @@
 import React from "react";
 import cn from "classnames";
 import styles from "./Card.module.sass";
-import Play from "../Play";
 import { Link } from "react-router-dom";
 
 const Card = ({ className, item }) => {
   return (
-    <Link className={cn(className, styles.card)} to={item.url}>
+    <Link
+      className={cn(className, styles.card)}
+      to={`/learn-crypto-details/${item.id}`}
+    >
       <div className={styles.preview}>
-        {item.categoryText && (
+        {item.category && (
           <div
             className={cn(
               "category",
               {
-                "category-purple": item.category === "purple",
-              },
-              {
-                "category-green": item.category === "green",
-              },
-              {
-                "category-blue": item.category === "blue",
+                "category-purple":
+                  item.category.toLowerCase() === "news" ||
+                  item.category.toLowerCase() === "tutorial",
+                "category-green": item.category.toLowerCase() === "trading",
+                "category-blue": item.category.toLowerCase() === "wallet",
               },
               styles.category
             )}
           >
-            {item.categoryText}
+            {item.category}
           </div>
         )}
-        <img srcSet={`${item.image2x} 2x`} src={item.image} alt="Card" />
-        {item.play && <Play className="play" small />}
+
+        <img srcSet={`${item.media} 2x`} src={item.media} alt="Card" />
       </div>
       <div className={styles.body}>
         <div className={styles.avatar}></div>
         <div className={styles.details}>
-          <div className={styles.title}>{item.title}</div>
-          <div className={styles.author}>{item.author}</div>
+          <div className={styles.title}>
+            {item.title.length > 21
+              ? item.title.substring(0, 21) + "..."
+              : item.title}
+          </div>
+
+          <div className={styles.author}>{item.author.username}</div>
         </div>
-        {item.statusText && (
+
+        {item.category && (
           <div
             className={cn(
-              {
-                "category-stroke-green": item.status === "green",
-              },
+              "category-red",
+              "category-stroke-green",
               styles.status
             )}
           >
-            {item.statusText}
+            {item.category}
           </div>
         )}
       </div>

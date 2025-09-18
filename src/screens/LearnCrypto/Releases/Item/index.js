@@ -6,29 +6,26 @@ import Icon from "../../../../components/Icon";
 
 const Item = ({ className, item }) => {
   return (
-    <Link className={cn(className, styles.item)} to={item.url}>
+    <Link
+      className={cn(className, styles.item)}
+      to={`/learn-crypto-details/${item.id}`}
+    >
       <div className={styles.preview}>
-        <img srcSet={`${item.image2x} 2x`} src={item.image} alt="Item" />
+        <img srcSet={`${item.media} 2x`} src={item.media} alt="Item" />
       </div>
       <div className={styles.details}>
-        {item.categoryText && (
-          <div
-            className={cn(
-              {
-                "category-red": item.category === "red",
-              },
-              {
-                "category-green": item.category === "green",
-              },
-              styles.category
-            )}
-          >
-            {item.categoryText}
-          </div>
-        )}
+        <div className={cn("category-red", styles.category)}>new</div>
+
         <h4 className={cn("h4", styles.title)}>{item.title}</h4>
-        <div className={styles.currency}>{item.currency}</div>
-        <div className={styles.content}>{item.content}</div>
+        <div
+          className={styles.content}
+          dangerouslySetInnerHTML={{
+            __html:
+              item.content.length > 120
+                ? item.content.slice(0, 120) + "..."
+                : item.content,
+          }}
+        ></div>
       </div>
       <div className={styles.arrow}>
         <Icon name="arrow-next" size="14" />

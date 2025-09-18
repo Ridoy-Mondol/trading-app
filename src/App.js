@@ -58,7 +58,7 @@ function App() {
           }
         />
         <Route
-          path="learn-crypto-details"
+          path="learn-crypto-details/:id"
           element={
             <Page>
               <LearnCryptoDetails />

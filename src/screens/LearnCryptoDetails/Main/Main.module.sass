@@ -20,3 +20,22 @@
 
 .breadcrumbs
     justify-content: center
+
+.media
+    position: relative
+    &:before
+        content: ""
+        display: block
+        padding-bottom: 53.6%
+        +d
+            padding-bottom: 69%
+        +m
+            padding-bottom: 150%
+    img
+        position: absolute
+        top: 0
+        left: 0
+        width: 100%
+        height: 100%
+        border-radius: 16px
+        object-fit: cover
