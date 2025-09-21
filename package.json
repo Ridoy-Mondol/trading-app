@@ -15,6 +15,7 @@
     "body-scroll-lock": "^4.0.0-beta.0",
     "classnames": "^2.3.2",
     "country-telephone-data": "^0.6.3",
+    "lucide-react": "^0.544.0",
     "moment": "^2.29.4",
     "pusher-js": "^8.4.0",
     "react": "^18.2.0",

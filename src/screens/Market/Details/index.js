@@ -8,7 +8,7 @@ const Details = () => {
   return (
     <div className={cn("section", styles.details)}>
       <div className={cn("container", styles.container)}>
-        <Panel />
+        {/* <Panel /> */}
         <Trade />
       </div>
     </div>
