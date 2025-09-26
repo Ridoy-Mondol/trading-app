@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "../../../../../components/Icon";
 import Loader from "../../../../../components/Loader";
 
-const Table = () => {
+const Table = ({ filters }) => {
   const [items, setItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);

@@ -318,20 +318,26 @@
 
 
 
-import React from "react";
-import cn from "classnames";
-import styles from "./Trade.module.sass";
-import { Link } from "react-router-dom";
-import Icon from "../../../../components/Icon";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import React, { useState } from "react";
 import Table from "./Table"
 import Filters from "./Filters"
 
 const Trade = () => {
+  const [filters, setFilters] = useState({
+    search: "",
+    activeTab: "top",
+    sortBy: "Price",
+    sortOrder: "desc",
+    selectedExchanges: [],
+    stablecoinOnly: false,
+    advanced: {},
+  });
+
+  console.log('filters', filters);
   return (
     <>
-      <Filters />
-      <Table />
+      <Filters filters={filters} setFilters={setFilters} />
+      <Table filters={filters} />
     </>
   );
 };

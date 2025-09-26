@@ -49,7 +49,9 @@ const Cards = ({ className, tokens, loading }) => {
                     : styles.negative
                 }
               >
-                {x.price.change_24hr.toFixed(2)}
+                {x.price.change_24hr.toFixed(2) > 0
+                  ? `+${x.price.change_24hr.toFixed(2)}`
+                  : x.price.change_24hr.toFixed(2)}
               </div>
             </div>
             <div className={styles.price}>{x.price?.usd.toFixed(4)}</div>

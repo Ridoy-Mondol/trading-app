@@ -4,26 +4,41 @@ import styles from "./Filters.module.sass";
 import Dropdown from "../../../../../components/Dropdown";
 
 const sortOptions = [
-  "Token Rank",
+  "Price",
   "Market Cap",
   "24h Volume (USD)",
   "24h Change",
   "Pair Age",
-  "Price",
   "FDV",
   "Max Supply",
   "Exchange Count",
-  "Chain Rank",
 ];
 
-const Filters = () => {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("top");
-  const [sortBy, setSortBy] = useState(sortOptions[0]);
-  const [sortOrder, setSortOrder] = useState("desc");
+const advancedFilters = [
+  { key: "age", label: "Age", unit: "hours" },
+  { key: "marketCap", label: "Market Cap", unit: "$" },
+  { key: "fdv", label: "FDV", unit: "$" },
+  { key: "volume24h", label: "24h Volume", unit: "$" },
+  { key: "change24h", label: "24h Change", unit: "%" },
+  { key: "price", label: "Price", unit: "$" },
+];
+
+const Filters = ({ filters, setFilters }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [selectedExchanges, setSelectedExchanges] = useState([]);
-  const [stablecoinOnly, setStablecoinOnly] = useState(false);
+  const [advancedDraft, setAdvancedDraft] = useState({
+    ageMin: "",
+    ageMax: "",
+    marketCapMin: "",
+    marketCapMax: "",
+    fdvMin: "",
+    fdvMax: "",
+    volumeMin: "",
+    volumeMax: "",
+    changeMin: "",
+    changeMax: "",
+    priceMin: "",
+    priceMax: "",
+  });
 
   const exchanges = ["Coingecko", "MetalX", "Alcor"];
 
@@ -34,9 +49,46 @@ const Filters = () => {
   ];
 
   const toggleExchange = (ex) => {
-    setSelectedExchanges((prev) =>
-      prev.includes(ex) ? prev.filter((e) => e !== ex) : [...prev, ex]
-    );
+    setFilters((prev) => ({
+      ...prev,
+      selectedExchanges: prev.selectedExchanges.includes(ex)
+        ? prev.selectedExchanges.filter((e) => e !== ex)
+        : [...prev.selectedExchanges, ex],
+    }));
+  };
+
+  const handleAdvancedChange = (field, value) => {
+    setAdvancedDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const applyAdvancedFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      advanced: { ...advancedDraft },
+    }));
+    setShowAdvanced(false);
+  };
+
+  const resetAdvanced = () => {
+    const cleared = {
+      ageMin: "",
+      ageMax: "",
+      marketCapMin: "",
+      marketCapMax: "",
+      fdvMin: "",
+      fdvMax: "",
+      volumeMin: "",
+      volumeMax: "",
+      changeMin: "",
+      changeMax: "",
+      priceMin: "",
+      priceMax: "",
+    };
+    setAdvancedDraft(cleared);
+    setFilters((prev) => ({
+      ...prev,
+      advanced: {},
+    }));
   };
 
   return (
@@ -50,8 +102,10 @@ const Filters = () => {
             type="text"
             placeholder="Search tokens, pairs, or addresses..."
             className={styles.search}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={filters.search}
+            onChange={(e) =>
+              setFilters((p) => ({ ...p, search: e.target.value }))
+            }
           />
         </div>
 
@@ -61,9 +115,9 @@ const Filters = () => {
             <button
               key={id}
               className={cn(styles.tabPill, {
-                [styles.active]: activeTab === id,
+                [styles.active]: filters.activeTab === id,
               })}
-              onClick={() => setActiveTab(id)}
+              onClick={() => setFilters((p) => ({ ...p, activeTab: id }))}
             >
               <span className={styles.tabIcon}>{icon}</span>
               {label}
@@ -76,17 +130,26 @@ const Filters = () => {
       <div className={styles.controlsRow}>
         {/* Sort Dropdown */}
         <div className={styles.sortWrapper}>
-          <Dropdown value={sortBy} setValue={setSortBy} options={sortOptions} />
+          <Dropdown
+            value={filters.sortBy}
+            setValue={(v) => setFilters((p) => ({ ...p, sortBy: v }))}
+            options={sortOptions}
+          />
         </div>
 
         {/* Sort Direction */}
         <button
           className={cn(styles.sortOrder, {
-            [styles.desc]: sortOrder === "desc",
+            [styles.desc]: filters.sortOrder === "desc",
           })}
-          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          onClick={() =>
+            setFilters((p) => ({
+              ...p,
+              sortOrder: p.sortOrder === "asc" ? "desc" : "asc",
+            }))
+          }
         >
-          {sortOrder === "asc" ? "↑" : "↓"}
+          {filters.sortOrder === "asc" ? "↑" : "↓"}
         </button>
 
         {/* Exchange Filters */}
@@ -95,7 +158,7 @@ const Filters = () => {
             <button
               key={ex}
               className={cn(styles.exchangeBtn, {
-                [styles.selected]: selectedExchanges.includes(ex),
+                [styles.selected]: filters.selectedExchanges.includes(ex),
               })}
               onClick={() => toggleExchange(ex)}
             >
@@ -107,9 +170,11 @@ const Filters = () => {
         {/* Stablecoin Toggle */}
         <button
           className={cn(styles.stablecoinToggle, {
-            [styles.active]: stablecoinOnly,
+            [styles.active]: filters.stablecoinOnly,
           })}
-          onClick={() => setStablecoinOnly(!stablecoinOnly)}
+          onClick={() =>
+            setFilters((p) => ({ ...p, stablecoinOnly: !p.stablecoinOnly }))
+          }
         >
           <span className={styles.toggleIcon}>💰</span>
           Stablecoins
@@ -140,15 +205,8 @@ const Filters = () => {
       >
         <div className={styles.advancedContent}>
           <div className={styles.filtersGrid}>
-            {[
-              { label: "Age", unit: "hours" },
-              { label: "Market Cap", unit: "$" },
-              { label: "FDV", unit: "$" },
-              { label: "24h Volume", unit: "$" },
-              { label: "24h Change", unit: "%" },
-              { label: "Price", unit: "$" },
-            ].map(({ label, unit }) => (
-              <div key={label} className={styles.filterGroup}>
+            {advancedFilters.map(({ key, label, unit }) => (
+              <div key={key} className={styles.filterGroup}>
                 <label className={styles.filterLabel}>
                   {label} {unit && `(${unit})`}
                 </label>
@@ -157,11 +215,19 @@ const Filters = () => {
                     type="number"
                     placeholder="Min"
                     className={styles.rangeInput}
+                    value={advancedDraft[`${key}Min`] || ""}
+                    onChange={(e) =>
+                      handleAdvancedChange(`${key}Min`, e.target.value)
+                    }
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     className={styles.rangeInput}
+                    value={advancedDraft[`${key}Max`] || ""}
+                    onChange={(e) =>
+                      handleAdvancedChange(`${key}Max`, e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -170,8 +236,12 @@ const Filters = () => {
 
           {/* Apply/Reset Buttons */}
           <div className={styles.actionButtons}>
-            <button className={styles.resetBtn}>Reset</button>
-            <button className={styles.applyBtn}>Apply Filters</button>
+            <button className={styles.resetBtn} onClick={resetAdvanced}>
+              Reset
+            </button>
+            <button className={styles.applyBtn} onClick={applyAdvancedFilters}>
+              Apply Filters
+            </button>
           </div>
         </div>
       </div>

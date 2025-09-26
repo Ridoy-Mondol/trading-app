@@ -23,7 +23,7 @@ const items = [
     button: "Trade now",
     image: "/images/content/card-pic-2.png",
     image2x: "/images/content/card-pic-2@2x.png",
-    url: "/exchange",
+    url: "/market",
   },
   {
     title: "Learn crypto",

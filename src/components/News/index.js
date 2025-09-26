@@ -14,7 +14,7 @@ const items = [
     stage: "crypto news",
     image: "/images/content/news-pic-1.png",
     image2x: "/images/content/news-pic-1@2x.png",
-    url: "/learn-crypto-details",
+    url: "/learn-crypto",
   },
   {
     title: "Be Part of our Global Community",
@@ -23,7 +23,7 @@ const items = [
     stage: "Join now",
     image: "/images/content/news-pic-1.png",
     image2x: "/images/content/news-pic-1@2x.png",
-    url: "/learn-crypto-details",
+    url: "/learn-crypto",
   },
   {
     title: "Be Part of our Global Community",
@@ -32,7 +32,7 @@ const items = [
     stage: "crypto news",
     image: "/images/content/news-pic-1.png",
     image2x: "/images/content/news-pic-1@2x.png",
-    url: "/learn-crypto-details",
+    url: "/learn-crypto",
   },
 ];
 
