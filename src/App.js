@@ -117,7 +117,7 @@ function App() {
           }
         />
         <Route
-          path="exchange"
+          path="exchange/:id"
           element={
             <Page headerWide footerHide>
               <Exchange />

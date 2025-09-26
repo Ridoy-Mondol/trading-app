@@ -192,7 +192,7 @@ const Table = () => {
               </div>
               <div className={styles.col}>
                 <div className={styles.label}>Price</div>
-                {`$${x.price?.usd.toFixed(2)}`}
+                {`$${x.price?.usd.toFixed(4)}`}
               </div>
               <div className={styles.col}>
                 <div className={styles.label}>24h</div>

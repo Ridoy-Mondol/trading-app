@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Trend.module.sass";
 import { Link } from "react-router-dom";
-import Dropdown from "../../../components/Dropdown";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
-import { useCryptoDetails } from "../../../hooks/useCryptoDetails";
+import Loader from "../../../components/Loader";
 
 // const navigation = [
 //   "All",
@@ -16,32 +14,33 @@ import { useCryptoDetails } from "../../../hooks/useCryptoDetails";
 //   "Storage",
 // ];
 
-const Learn = () => {
+const Learn = ({ tokens, loading }) => {
   // const [activeIndex, setActiveIndex] = useState(0);
   // const [sorting, setSorting] = useState(navigation[0]);
 
-  const { assets, loading, error } = useCryptoDetails();
-
-  const normalizeHistory = (historyArray) => {
-    const min = Math.min(...historyArray);
-    const max = Math.max(...historyArray);
-
-    if (max === min) {
-      return historyArray.map(() => ({ price: 5 }));
-    }
-
-    return historyArray.map((p) => ({
-      price: ((p - min) / (max - min)) * 10,
-    }));
+  const formatNumber = (num) => {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
+    return num.toFixed(2);
   };
 
-  const transformedAssets = assets.map((asset) => ({
-    ...asset,
-    priceHistory: normalizeHistory(asset.priceHistory),
-  }));
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error loading data</p>;
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100%",
+        }}
+      >
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("section", styles.section)}>
@@ -79,88 +78,56 @@ const Learn = () => {
             <div className={styles.col}>Name</div>
             <div className={styles.col}>Price</div>
             <div className={styles.col}>24h change</div>
-            <div className={styles.col}>Chart</div>
+            <div className={styles.col}>Marketcap</div>
             <div className={styles.col}>Trade</div>
           </div>
-          {transformedAssets.map((x, index) => {
-            const isIncreasing =
-              x.priceHistory?.length > 1 &&
-              x.priceHistory[x.priceHistory.length - 1].price >
-                x.priceHistory[0].price;
-
-            const gradientId = `colorPrice-${index}`;
-            const strokeColor = isIncreasing ? "#58BD7D" : "#FF6A55";
-            const stopColor = isIncreasing ? "#45B36B" : "#FF6A55";
+          {tokens.map((x, index) => {
             return (
-              <Link className={styles.row} to='/exchange' key={index}>
+              <Link
+                className={styles.row}
+                to={`/exchange/${x.metadata.name}`}
+                key={index}
+              >
                 <div className={styles.col}>{index + 1}</div>
                 <div className={styles.col}>
                   <div className={styles.item}>
                     <div className={styles.icon}>
-                      <img src={x.logoUrl} alt="Currency" />
+                      <img
+                        src={
+                          x.metadata.logo ||
+                          "/images/content/currency/fallback-logo.png"
+                        }
+                        alt={x.metadata.name}
+                      />
                     </div>
                     <div className={styles.details}>
-                      <span className={styles.subtitle}>{x.name} </span>
+                      <span className={styles.subtitle}>
+                        {x.metadata.name}{" "}
+                      </span>
                       <span className={styles.currency}>{x.symbol}</span>
                     </div>
                   </div>
                 </div>
-                <div className={styles.col}>${x.currentPrice}</div>
+                <div className={styles.col}>
+                  {`$${x.price?.usd.toFixed(2)}`}
+                </div>
                 <div className={styles.col}>
                   <div
                     className={
-                      parseFloat(x.priceChange24h) >= 0
-                        ? styles.positive
+                      x.price.change_24hr >= 0
+                        ? x.price.change_24hr > 0
+                          ? styles.positive
+                          : ""
                         : styles.negative
                     }
                   >
-                    {parseFloat(x.priceChange24h) >= 0 ? `+${x.priceChange24h}` : `${x.priceChange24h}`}
+                    {x.price.change_24hr > 0
+                      ? `+${x.price.change_24hr.toFixed(2)}`
+                      : x.price.change_24hr.toFixed(2)}
                   </div>
                 </div>
                 <div className={styles.col}>
-                  <div className={styles.chart}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        width={500}
-                        height={400}
-                        data={x.priceHistory}
-                        margin={{
-                          top: 0,
-                          right: 0,
-                          left: 0,
-                          bottom: 0,
-                        }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id={gradientId}
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor={stopColor}
-                              stopOpacity={0.6}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor={stopColor}
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <Area
-                          type="monotone"
-                          dataKey="price"
-                          stroke={strokeColor}
-                          fillOpacity={1}
-                          fill={`url(#${gradientId})`}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {`$${formatNumber(x.price.marketcap_usd)}`}
                 </div>
                 <div className={styles.col}>
                   <button

@@ -5,7 +5,7 @@ import styles from "./Main.module.sass";
 import ScrollButton from "../../../components/ScrollButton";
 import Cards from "./Cards";
 
-const Main = ({ scrollToRef }) => {
+const Main = ({ scrollToRef, tokens, loading }) => {
   return (
     <div className={cn("section", styles.main)}>
       <div className={cn("container", styles.container)}>
@@ -34,7 +34,7 @@ const Main = ({ scrollToRef }) => {
             alt="Cards"
           />
         </div>
-        <Cards className={styles.cards} />
+        <Cards className={styles.cards} tokens={tokens} loading={loading} />
       </div>
     </div>
   );
