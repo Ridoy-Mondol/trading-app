@@ -2,7 +2,7 @@
 
 .container
   position: relative
-  z-index: 10 
+  z-index: 1
   width: 100%
   margin-bottom: 50px
   background: linear-gradient(135deg, $n8 0%, rgba($n7, 0.95) 100%)
@@ -246,10 +246,12 @@
   max-height: 0
   opacity: 0
   margin-top: 0
+  pointer-events: none
   &.expanded
     max-height: 800px
     opacity: 1
     margin-top: 20px
+    pointer-events: auto
 
 .advancedContent
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)

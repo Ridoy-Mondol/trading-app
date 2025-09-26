@@ -25,7 +25,7 @@ const Filters = () => {
   const [selectedExchanges, setSelectedExchanges] = useState([]);
   const [stablecoinOnly, setStablecoinOnly] = useState(false);
 
-  const exchanges = ["ProtonDEX", "DefiBox", "MetalX", "Alcor"];
+  const exchanges = ["Coingecko", "MetalX", "Alcor"];
 
   const tabs = [
     { id: "trending", label: "Trending", icon: "📈" },

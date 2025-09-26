@@ -16,7 +16,7 @@
         +t
             display: none
         .col
-            padding: 0 16px 32px
+            padding: 0 10px 32px
             border-bottom: 1px solid $n6
             +caption-bold-2
             color: $n4
@@ -27,6 +27,9 @@
                 fill: $n4
     &:not(:first-child)
         transition: background .2s
+        +t
+            pointer-events: auto
+            cursor: pointer
         .col
             vertical-align: middle
             font-weight: 500
@@ -41,6 +44,7 @@
                     border-radius: 0
         &:hover
             background: $n7
+            cursor: pointer
             +dark
                 background: $n2
             .button
@@ -57,7 +61,7 @@
 
 .col
     display: table-cell
-    padding: 16px
+    padding: 10px
     text-align: right
     font-weight: 500
     +t
@@ -146,3 +150,162 @@
         margin-right: auto
         +caption-bold-2
         color: $n4
+
+.pagination
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-top: 32px
+    padding: 24px 0
+    border-top: 1px solid $n6
+    +dark
+        border-color: $n3
+    +t
+        flex-direction: column
+        gap: 20px
+
+.paginationInfo
+    font-size: 14px
+    font-weight: 500
+    color: $n4
+    +t
+        order: 2
+
+.paginationControls
+    display: flex
+    align-items: center
+    gap: 8px
+    +t
+        order: 1
+
+.paginationBtn
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 10px 16px
+    border: 1px solid $n6
+    border-radius: 8px
+    background: transparent
+    color: $n2
+    font-size: 14px
+    font-weight: 500
+    cursor: pointer
+    transition: all 0.2s ease
+    +dark
+        border-color: $n3
+        color: $n8
+    
+    &:hover:not(:disabled)
+        background: $n7
+        border-color: $n5
+        +dark
+            background: $n2
+            border-color: $n4
+    
+    &:disabled
+        opacity: 0.5
+        cursor: not-allowed
+        color: $n5
+    
+    svg
+        flex-shrink: 0
+        fill: currentColor
+        stroke: currentColor
+
+.prevBtn
+    +t
+        padding: 8px 12px
+        font-size: 13px
+
+.nextBtn
+    +t
+        padding: 8px 12px
+        font-size: 13px
+
+.pageNumbers
+    display: flex
+    align-items: center
+    gap: 4px
+    margin: 0 16px
+    +t
+        margin: 0 8px
+
+.pageBtn
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    border: 1px solid transparent
+    border-radius: 8px
+    background: transparent
+    color: $n2
+    font-size: 14px
+    font-weight: 500
+    cursor: pointer
+    transition: all 0.2s ease
+    +dark
+        color: $n8
+    +t
+        width: 36px
+        height: 36px
+        font-size: 13px
+    
+    &:hover
+        background: $n7
+        border-color: $n6
+        +dark
+            background: $n2
+            border-color: $n3
+    
+    &.active
+        background: $p1
+        border-color: $p1
+        color: white
+        +dark
+            background: $p1
+            border-color: $p1
+        
+        &:hover
+            background: $p1
+            border-color: $p1
+
+.dots
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    color: $n4
+    font-size: 14px
+    font-weight: 500
+    +t
+        width: 36px
+        height: 36px
+        font-size: 13px
+
+// Enhanced responsive design for pagination
++m
+    .pagination
+        padding: 20px 0
+    
+    .paginationControls
+        gap: 6px
+    
+    .pageNumbers
+        margin: 0 6px
+        gap: 2px
+    
+    .pageBtn
+        width: 32px
+        height: 32px
+        font-size: 12px
+    
+    .dots
+        width: 32px
+        height: 32px
+        font-size: 12px
+    
+    .paginationBtn
+        padding: 8px 10px
+        font-size: 12px
