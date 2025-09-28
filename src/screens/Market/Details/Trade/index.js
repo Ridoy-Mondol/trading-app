@@ -325,15 +325,14 @@ import Filters from "./Filters"
 const Trade = () => {
   const [filters, setFilters] = useState({
     search: "",
-    activeTab: "top",
-    sortBy: "Price",
+    activeTab: "",
+    sortBy: "Default",
     sortOrder: "desc",
     selectedExchanges: [],
     stablecoinOnly: false,
     advanced: {},
   });
 
-  console.log('filters', filters);
   return (
     <>
       <Filters filters={filters} setFilters={setFilters} />

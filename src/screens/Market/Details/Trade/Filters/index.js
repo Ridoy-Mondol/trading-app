@@ -4,49 +4,49 @@ import styles from "./Filters.module.sass";
 import Dropdown from "../../../../../components/Dropdown";
 
 const sortOptions = [
+  "Default",
   "Price",
   "Market Cap",
   "24h Volume (USD)",
   "24h Change",
-  "Pair Age",
   "FDV",
+  "Circulating Supply",
   "Max Supply",
   "Exchange Count",
+  "Leading Pair Volume",
 ];
 
-const advancedFilters = [
-  { key: "age", label: "Age", unit: "hours" },
-  { key: "marketCap", label: "Market Cap", unit: "$" },
-  { key: "fdv", label: "FDV", unit: "$" },
-  { key: "volume24h", label: "24h Volume", unit: "$" },
-  { key: "change24h", label: "24h Change", unit: "%" },
-  { key: "price", label: "Price", unit: "$" },
+const tabs = [
+  { id: "trending", label: "Trending", icon: "📈" },
+  { id: "top", label: "Top", icon: "⭐" },
+  { id: "gainers", label: "Gainers (24h)", icon: "⬆️" },
+  { id: "losers", label: "Losers (24h)", icon: "⬇️" },
 ];
+
+const exchanges = ["Coingecko", "MetalX", "Alcor"];
+
+const advancedFilters = [
+  { key: "price", label: "Price", unit: "$" },
+  { key: "marketCap", label: "Market Cap", unit: "$" },
+  { key: "volume24h", label: "24h Volume", unit: "$" },
+  { key: "fdv", label: "FDV", unit: "$" },
+  { key: "change24h", label: "24h Change", unit: "%" },
+  { key: "maxSupply", label: "Max Supply", unit: "tokens" },
+  { key: "circulatingSupply", label: "Circulating Supply", unit: "tokens" },
+  { key: "exchangeCount", label: "Exchange Count", unit: "#" },
+  { key: "leadingPairVol", label: "Leading Pair Volume", unit: "%" },
+];
+
+const buildEmptyAdvancedDraft = () =>
+  advancedFilters.reduce((acc, { key }) => {
+    acc[`${key}Min`] = "";
+    acc[`${key}Max`] = "";
+    return acc;
+  }, {});
 
 const Filters = ({ filters, setFilters }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [advancedDraft, setAdvancedDraft] = useState({
-    ageMin: "",
-    ageMax: "",
-    marketCapMin: "",
-    marketCapMax: "",
-    fdvMin: "",
-    fdvMax: "",
-    volumeMin: "",
-    volumeMax: "",
-    changeMin: "",
-    changeMax: "",
-    priceMin: "",
-    priceMax: "",
-  });
-
-  const exchanges = ["Coingecko", "MetalX", "Alcor"];
-
-  const tabs = [
-    { id: "trending", label: "Trending", icon: "📈" },
-    { id: "top", label: "Top", icon: "⭐" },
-    { id: "new", label: "New", icon: "🕐" },
-  ];
+  const [advancedDraft, setAdvancedDraft] = useState(buildEmptyAdvancedDraft());
 
   const toggleExchange = (ex) => {
     setFilters((prev) => ({
@@ -62,33 +62,93 @@ const Filters = ({ filters, setFilters }) => {
   };
 
   const applyAdvancedFilters = () => {
-    setFilters((prev) => ({
-      ...prev,
-      advanced: { ...advancedDraft },
-    }));
+    for (const { key, label } of advancedFilters) {
+      const rawMin = advancedDraft[`${key}Min`];
+      const rawMax = advancedDraft[`${key}Max`];
+
+      const min = rawMin !== "" ? Number(rawMin) : null;
+      const max = rawMax !== "" ? Number(rawMax) : null;
+
+      // Check NaN / Infinity
+      if (
+        (min !== null && !isFinite(min)) ||
+        (max !== null && !isFinite(max))
+      ) {
+        alert(`Invalid number for ${label}`);
+        return;
+      }
+
+      // Min > Max check
+      if (min !== null && max !== null && min > max) {
+        alert(`Min value for "${label}" cannot be greater than Max.`);
+        return;
+      }
+
+      // Field-specific validation
+      switch (key) {
+        case "price":
+        case "marketCap":
+        case "volume24h":
+        case "fdv":
+        case "maxSupply":
+        case "circulatingSupply":
+          if ((min !== null && min < 0) || (max !== null && max < 0)) {
+            alert(`${label} cannot be negative.`);
+            return;
+          }
+          break;
+
+        case "exchangeCount":
+          if (
+            (min !== null && (!Number.isInteger(min) || min < 0)) ||
+            (max !== null && (!Number.isInteger(max) || max < 0))
+          ) {
+            alert(`${label} must be a non-negative integer.`);
+            return;
+          }
+          break;
+
+        case "change24h":
+          if (
+            (min !== null && (min < -100 || min > 100)) ||
+            (max !== null && (max < -100 || max > 100))
+          ) {
+            alert(`${label} must be between -100% and 100%.`);
+            return;
+          }
+          break;
+
+        case "leadingPairVol":
+          if (
+            (min !== null && (min < 0 || min > 100)) ||
+            (max !== null && (max < 0 || max > 100))
+          ) {
+            alert(`${label} must be between 0% and 100%.`);
+            return;
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    // ✅ Collect validated values
+    const parsed = {};
+    for (const { key } of advancedFilters) {
+      const rawMin = advancedDraft[`${key}Min`];
+      const rawMax = advancedDraft[`${key}Max`];
+      if (rawMin !== "") parsed[`${key}Min`] = Number(rawMin);
+      if (rawMax !== "") parsed[`${key}Max`] = Number(rawMax);
+    }
+
+    setFilters((prev) => ({ ...prev, advanced: parsed }));
     setShowAdvanced(false);
   };
 
   const resetAdvanced = () => {
-    const cleared = {
-      ageMin: "",
-      ageMax: "",
-      marketCapMin: "",
-      marketCapMax: "",
-      fdvMin: "",
-      fdvMax: "",
-      volumeMin: "",
-      volumeMax: "",
-      changeMin: "",
-      changeMax: "",
-      priceMin: "",
-      priceMax: "",
-    };
-    setAdvancedDraft(cleared);
-    setFilters((prev) => ({
-      ...prev,
-      advanced: {},
-    }));
+    setAdvancedDraft(buildEmptyAdvancedDraft());
+    setFilters((prev) => ({ ...prev, advanced: {} }));
   };
 
   return (
@@ -100,7 +160,7 @@ const Filters = ({ filters, setFilters }) => {
           <div className={styles.searchIcon}>🔍</div>
           <input
             type="text"
-            placeholder="Search tokens, pairs, or addresses..."
+            placeholder="Search by token name or symbol..."
             className={styles.search}
             value={filters.search}
             onChange={(e) =>
@@ -117,7 +177,12 @@ const Filters = ({ filters, setFilters }) => {
               className={cn(styles.tabPill, {
                 [styles.active]: filters.activeTab === id,
               })}
-              onClick={() => setFilters((p) => ({ ...p, activeTab: id }))}
+              onClick={() =>
+                setFilters((p) => ({
+                  ...p,
+                  activeTab: p.activeTab === id ? "" : id,
+                }))
+              }
             >
               <span className={styles.tabIcon}>{icon}</span>
               {label}
@@ -142,6 +207,9 @@ const Filters = ({ filters, setFilters }) => {
           className={cn(styles.sortOrder, {
             [styles.desc]: filters.sortOrder === "desc",
           })}
+          data-tooltip={
+            filters.sortOrder === "asc" ? "Ascending" : "Descending"
+          }
           onClick={() =>
             setFilters((p) => ({
               ...p,
@@ -213,6 +281,7 @@ const Filters = ({ filters, setFilters }) => {
                 <div className={styles.rangeInputs}>
                   <input
                     type="number"
+                    step="any"
                     placeholder="Min"
                     className={styles.rangeInput}
                     value={advancedDraft[`${key}Min`] || ""}
@@ -222,6 +291,7 @@ const Filters = ({ filters, setFilters }) => {
                   />
                   <input
                     type="number"
+                    step="any"
                     placeholder="Max"
                     className={styles.rangeInput}
                     value={advancedDraft[`${key}Max`] || ""}

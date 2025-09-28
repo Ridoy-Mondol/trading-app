@@ -34,7 +34,7 @@
 
 .search
   width: 100%
-  padding: 14px 16px 14px 48px
+  padding: 14px 16px
   border: 2px solid rgba($n5, 0.3)
   border-radius: 12px
   font-size: 15px
@@ -116,9 +116,9 @@
     align-items: stretch
 
 .sortWrapper
-  width: 170px
+  width: 200px
   z-index: 10
-
+  
 .sortOrder
   display: flex
   align-items: center
@@ -133,18 +133,86 @@
   font-weight: bold
   color: $n3
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+  position: relative
+  
+  &::after
+    content: attr(data-tooltip)
+    position: absolute
+    bottom: 100%
+    left: 50%
+    transform: translateX(-50%)
+    background: rgba($n1, 0.9)
+    color: white
+    padding: 6px 10px
+    border-radius: 6px
+    font-size: 12px
+    font-weight: 500
+    white-space: nowrap
+    opacity: 0
+    visibility: hidden
+    transition: all 0.2s ease
+    margin-bottom: 8px
+    pointer-events: none
+    z-index: 1000
+  
+  &::before
+    content: ''
+    position: absolute
+    bottom: 100%
+    left: 50%
+    transform: translateX(-50%)
+    border: 4px solid transparent
+    border-top-color: rgba($n1, 0.9)
+    margin-bottom: 4px
+    opacity: 0
+    visibility: hidden
+    transition: all 0.2s ease
+    z-index: 1000
+  
+  &:hover::after,
+  &:hover::before
+    opacity: 1
+    visibility: visible
+
   +dark
     background: rgba($n2, 0.9)
     color: $n6
     border-color: rgba($n4, 0.2)
+    
+    &::after
+      background: rgba($n6, 0.95)
+      color: $n1
+    
+    &::before
+      border-top-color: rgba($n6, 0.95)
+
   &:hover
     transform: translateY(-2px) scale(1.05)
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)
+    border-color: rgba($n5, 0.4)
+
   &.desc
     background: linear-gradient(135deg, $p4 0%, lighten($p4, 10%) 100%)
     color: white
     border-color: $p4
     box-shadow: 0 4px 12px rgba($p4, 0.4)
+    
+    &::after
+      background: rgba($p4, 0.95)
+      color: white
+    
+    &::before
+      border-top-color: rgba($p4, 0.95)
+
+  &:active
+    transform: translateY(0) scale(0.98)
+    transition: all 0.1s ease
+
+  &:focus
+    outline: none
+    box-shadow: 0 0 0 3px rgba($p4, 0.3)
+
+
 
 .exchangeFilters
   display: flex
