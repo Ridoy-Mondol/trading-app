@@ -36,7 +36,7 @@ const SignIn = () => {
           requestAccount: "",
         },
         selectorOptions: {
-          appName: "XPRTrade",
+          appName: "XPRDex",
         },
       });
 
@@ -110,7 +110,7 @@ const SignIn = () => {
     >
       <div className={styles.login}>
         <div className={styles.top}>
-          <h3 className={cn("h3", styles.title)}>Sign in XPRTrade</h3>
+          <h3 className={cn("h3", styles.title)}>Sign in XPRDex</h3>
           <div className={styles.info}>Use Your OpenID to Sign in</div>
 
           <div className={styles.btns}>
