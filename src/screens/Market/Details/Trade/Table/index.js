@@ -4,6 +4,7 @@ import styles from "./Table.module.sass";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../../../components/Icon";
 import Loader from "../../../../../components/Loader";
+import { useTokens } from "../../../../../hooks/useTokens";
 
 const Table = ({ filters }) => {
   const [items, setItems] = useState([]);
@@ -11,46 +12,10 @@ const Table = ({ filters }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
   const [totalItems, setTotalItems] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [allTokens, setAllTokens] = useState([]);
   const [filteredTokens, setFilteredTokens] = useState([]);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchTokens = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("https://www.api.bloks.io/proton/tokens", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!res.ok) throw new Error("Network response was not ok");
-
-        const data = await res.json();
-
-        const protonTokens = data
-          .filter((token) => token.chain === "proton")
-          .map((t, i) => ({ ...t, _originalIndex: i }));
-        setAllTokens(protonTokens);
-        setTotalItems(protonTokens.length);
-      } catch (err) {
-        console.error("Error fetching tokens:", err);
-        setTotalItems(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTokens();
-  }, []);
-
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("watchlist") || "[]");
-    setWatchlist(stored);
-  }, []);
+  const { data: allTokens = [], isLoading, error } = useTokens();
 
   const handleFavoriteClick = (token) => {
     const existing = JSON.parse(localStorage.getItem("watchlist") || "[]");
@@ -329,7 +294,7 @@ const Table = ({ filters }) => {
     return Math.floor(num * factor) / factor;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div
         style={{

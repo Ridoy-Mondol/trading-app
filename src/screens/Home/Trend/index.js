@@ -81,7 +81,7 @@ const Learn = ({ tokens, loading }) => {
             <div className={styles.col}>Marketcap</div>
             <div className={styles.col}>Trade</div>
           </div>
-          {tokens.map((x, index) => {
+          {tokens.slice(0, 5).map((x, index) => {
             return (
               <Link
                 className={styles.row}
