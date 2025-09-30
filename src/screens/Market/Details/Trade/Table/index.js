@@ -7,6 +7,7 @@ import Loader from "../../../../../components/Loader";
 
 const Table = ({ filters }) => {
   const [items, setItems] = useState([]);
+  const [watchlist, setWatchlist] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
   const [totalItems, setTotalItems] = useState(0);
@@ -47,6 +48,28 @@ const Table = ({ filters }) => {
   }, []);
 
   useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("watchlist") || "[]");
+    setWatchlist(stored);
+  }, []);
+
+  const handleFavoriteClick = (token) => {
+    const existing = JSON.parse(localStorage.getItem("watchlist") || "[]");
+    const isSaved = existing.some((t) => t.symbol === token.symbol);
+
+    let updated;
+    if (isSaved) {
+      updated = existing.filter((t) => t.symbol !== token.symbol);
+    } else {
+      updated = [...existing, token];
+    }
+
+    localStorage.setItem("watchlist", JSON.stringify(updated));
+    setWatchlist(updated);
+
+    console.log(`${token.symbol} added to watchlist`);
+  };
+
+  useEffect(() => {
     if (allTokens.length === 0) return;
 
     let result = [...allTokens];
@@ -68,6 +91,19 @@ const Table = ({ filters }) => {
         const firstPair = t.pairs?.[0];
         return (
           firstPair && filters.selectedExchanges.includes(firstPair.exchange)
+        );
+      });
+    }
+
+    // === Watchlist filter ===
+    const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+    if (filters.watchlistOnly) {
+      result = result.filter((t) => {
+        const name = t.metadata?.name?.toLowerCase();
+        const symbol = t.symbol?.toLowerCase();
+        return watchlist.some(
+          (w) =>
+            w.name?.toLowerCase() === name && w.symbol?.toLowerCase() === symbol
         );
       });
     }
@@ -354,6 +390,7 @@ const Table = ({ filters }) => {
         </div>
         {items.map((x, index) => {
           const actualIndex = startIndex + index;
+          const isFavorited = watchlist.some((t) => t.symbol === x.symbol);
           return (
             <div
               onClick={() => navigate(`/exchange/${x.metadata.name}`)}
@@ -367,9 +404,16 @@ const Table = ({ filters }) => {
                     className={cn("favorite", styles.favorite)}
                     onClick={(e) => {
                       e.stopPropagation();
+                      handleFavoriteClick({
+                        name: x.metadata.name,
+                        symbol: x.symbol,
+                      });
                     }}
                   >
-                    <Icon name="star-outline" size="16" />
+                    <Icon
+                      name={isFavorited ? "star" : "star-outline"}
+                      size={16}
+                    />
                   </button>
                   {actualIndex + 1}
                 </div>

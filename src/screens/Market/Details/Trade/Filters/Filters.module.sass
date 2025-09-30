@@ -118,7 +118,7 @@
 .sortWrapper
   width: 200px
   z-index: 10
-  
+
 .sortOrder
   display: flex
   align-items: center
@@ -212,8 +212,7 @@
     outline: none
     box-shadow: 0 0 0 3px rgba($p4, 0.3)
 
-
-
+/* ===================== EXCHANGE FILTERS ===================== */
 .exchangeFilters
   display: flex
   flex-wrap: wrap
@@ -243,7 +242,81 @@
     border-color: #10b981
     transform: translateY(-2px) scale(1.05)
     box-shadow: 0 4px 12px rgba(#10b981, 0.4)
+    
+/* ===================== NEW WATCHLIST TOGGLE ===================== */
+.watchlistToggle
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 16px
+  border-radius: 12px
+  border: 2px solid rgba($n5, 0.2)
+  background: rgba(255, 255, 255, 0.9)
+  cursor: pointer
+  font-size: 13px
+  font-weight: 600
+  color: $n2
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+  position: relative
+  backdrop-filter: blur(10px)
+  min-width: 120px
+  +dark
+    background: rgba($n2, 0.9)
+    color: $n7
+    border-color: rgba($n4, 0.2)
 
+  &:hover:not(.active)
+    border-color: #3b82f6
+    color: #3b82f6
+    transform: translateY(-2px) scale(1.02)
+    box-shadow: 0 4px 15px rgba(#3b82f6, 0.2)
+    background: rgba(#3b82f6, 0.05)
+    
+    .watchlistIcon
+      transform: scale(1.1)
+      filter: brightness(1.2)
+    
+    +dark
+      background: rgba(#3b82f6, 0.15)
+
+  &.active
+    background: linear-gradient(135deg, #3b82f6 0%, lighten(#3b82f6, 15%) 50%, #3b82f6 100%)
+    color: white
+    border-color: #3b82f6
+    transform: translateY(-2px) scale(1.05)
+    box-shadow: 0 6px 20px rgba(#3b82f6, 0.4), 0 3px 10px rgba(#3b82f6, 0.2)
+    
+    .watchlistIcon
+      animation: starTwinkle 1.5s ease-in-out infinite
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6))
+    
+    &:hover
+      transform: translateY(-3px) scale(1.08)
+      box-shadow: 0 8px 25px rgba(#3b82f6, 0.5), 0 4px 15px rgba(#3b82f6, 0.3)
+
+.watchlistIcon
+  font-size: 16px
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+  line-height: 1
+
+.watchlistText
+  font-weight: 600
+  letter-spacing: 0.3px
+
+// Star twinkle animation for active watchlist icon
+@keyframes starTwinkle
+  0%
+    transform: scale(1)
+  25%
+    transform: scale(1.1)
+  50%
+    transform: scale(1.05)
+  75%
+    transform: scale(1.1)
+  100%
+    transform: scale(1)
+
+/* ===================== STABLE COIN FILTER ===================== */
 .stablecoinToggle
   display: flex
   align-items: center

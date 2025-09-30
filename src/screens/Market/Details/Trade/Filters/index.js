@@ -235,6 +235,21 @@ const Filters = ({ filters, setFilters }) => {
           ))}
         </div>
 
+        {/* Watchlist Toggle */}
+        <button
+          className={cn(styles.watchlistToggle, {
+            [styles.active]: filters.watchlistOnly,
+          })}
+          onClick={() =>
+            setFilters((p) => ({ ...p, watchlistOnly: !p.watchlistOnly }))
+          }
+        >
+          <span className={styles.watchlistIcon}>
+            {filters.watchlistOnly ? "⭐" : "✩"}
+          </span>
+          <span className={styles.watchlistText}>Watchlist</span>
+        </button>
+
         {/* Stablecoin Toggle */}
         <button
           className={cn(styles.stablecoinToggle, {
