@@ -17,6 +17,11 @@ const Table = ({ filters }) => {
   const navigate = useNavigate();
   const { data: allTokens = [], isLoading, error } = useTokens();
 
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("watchlist") || "[]");
+    setWatchlist(stored);
+  }, []);
+
   const handleFavoriteClick = (token) => {
     const existing = JSON.parse(localStorage.getItem("watchlist") || "[]");
     const isSaved = existing.some((t) => t.symbol === token.symbol);
@@ -30,8 +35,6 @@ const Table = ({ filters }) => {
 
     localStorage.setItem("watchlist", JSON.stringify(updated));
     setWatchlist(updated);
-
-    console.log(`${token.symbol} added to watchlist`);
   };
 
   useEffect(() => {
