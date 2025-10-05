@@ -14,7 +14,7 @@ const items = [
     price: "$10,098.36",
   },
   {
-    title: "Fiat and Spot",
+    title: "Liquidity Pools",
     color: "#FFD166",
     currency: "0.2785689852 BTC",
     price: "$10,098.36",

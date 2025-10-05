@@ -152,7 +152,7 @@ const AssetBalances = () => {
           <div className={styles.col}>Asset</div>
           <div className={styles.col}>Earn</div>
           <div className={styles.col}>On orders</div>
-          <div className={styles.col}>Available balance</div>
+          <div className={styles.col}>Wallet Balance</div>
           <div className={styles.col}>Total balance</div>
         </div>
         {items.map((x, index) => (

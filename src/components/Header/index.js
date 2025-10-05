@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import cn from "classnames";
 import styles from "./Header.module.sass";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, useNavigate, NavLink, useLocation } from "react-router-dom";
 import Image from "../Image";
 import Dropdown from "./Dropdown";
 import Settings from "./Settings";
@@ -9,6 +9,7 @@ import Icon from "../Icon";
 import Notifications from "./Notifications";
 import Theme from "../Theme";
 import User from "./User";
+import { useWallet } from "../../context/WalletContext";
 
 const navigation = [
   {
@@ -43,6 +44,28 @@ const navigation = [
 const Header = ({ headerWide }) => {
   const [visibleNav, setVisibleNav] = useState(false);
   const { pathname } = useLocation();
+
+  const { walletConnected, connectWallet } = useWallet();
+  const navigate = useNavigate();
+
+  const handleWalletClick = async () => {
+    setVisibleNav(false);
+
+    try {
+      if (walletConnected) {
+        navigate("/wallet-overview");
+        return;
+      }
+
+      const session = await connectWallet();
+
+      if (session) {
+        navigate("/wallet-overview");
+      }
+    } catch (err) {
+      console.error("❌ Wallet connection failed:", err);
+    }
+  };
 
   return (
     <header className={cn(styles.header, { [styles.wide]: headerWide })}>
@@ -93,15 +116,15 @@ const Header = ({ headerWide }) => {
                 )
               )}
             </nav>
-            <NavLink
+            <button
               className={cn("button-stroke", styles.button, {
                 [styles.active]: pathname === "/wallet-overview",
               })}
-              to="/wallet-overview"
-              onClick={() => setVisibleNav(false)}
+              onClick={handleWalletClick}
             >
-              Wallet
-            </NavLink>
+              {walletConnected ? "Wallet" : "Connect Wallet"}
+            </button>
+
             {/* <div className={styles.btns}>
                             <Link
                                 className={cn("button-small", styles.button)}
@@ -131,14 +154,24 @@ const Header = ({ headerWide }) => {
               <Icon name="lightning" size="24" />
             </NavLink>
             <Notifications className={styles.notifications} />
-            <NavLink
+            {/* <NavLink
               className={cn("button-stroke button-small", styles.button, {
                 [styles.active]: pathname === "/wallet-overview",
               })}
               to="/wallet-overview"
             >
               Wallet
-            </NavLink>
+            </NavLink> */}
+
+            <button
+              className={cn("button-stroke button-small", styles.button, {
+                [styles.active]: pathname === "/wallet-overview",
+              })}
+              onClick={handleWalletClick}
+            >
+              Wallet
+            </button>
+
             <Theme className={styles.theme} icon />
             <User className={styles.user} />
           </div>

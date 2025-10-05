@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@proton/js": "^28.1.2",
     "@proton/web-sdk": "^4.2.20",
     "@supabase/supabase-js": "^2.57.4",
     "@tanstack/react-query": "^5.82.0",
