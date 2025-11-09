@@ -28,7 +28,8 @@ import SignUp from "./screens/SignUp";
 import ForgotPassword from "./screens/ForgotPassword";
 import PageList from "./screens/PageList";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useUser } from "./context/UserContext";
+import Pools from "./screens/Pools";
+import { useUser } from "./context/UserContext"; 
 import Loader from "./components/Loader";
 
 function App() {
@@ -113,6 +114,14 @@ function App() {
           element={
             <Page>
               <Activity />
+            </Page>
+          }
+        />
+        <Route
+          path="pools"
+          element={
+            <Page>
+              <Pools />
             </Page>
           }
         />

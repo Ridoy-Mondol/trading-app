@@ -1,0 +1,1082 @@
+import { useState, useEffect } from "react";
+import styles from "./pools.module.sass";
+import cn from "classnames";
+import { JsonRpc } from "eosjs";
+import { useWallet } from "../../context/WalletContext";
+import { useTokens } from "../../hooks/useTokens";
+
+const PoolsPage = () => {
+  const [pools, setPools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAddLiquidity, setShowAddLiquidity] = useState(false);
+  const [selectedPool, setSelectedPool] = useState(null);
+  const [sortBy, setSortBy] = useState("tvl");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [userLiquidity, setUserLiquidity] = useState([]);
+  const [config, setConfig] = useState(null);
+
+  // Add liquidity form state
+  const [token0, setToken0] = useState(null);
+  const [token1, setToken1] = useState(null);
+  const [amount0, setAmount0] = useState("");
+  const [amount1, setAmount1] = useState("");
+  const [slippage, setSlippage] = useState(0.5);
+
+  const { activeSession, walletConnected, connectWallet } = useWallet();
+  const { data: allTokens = [], isLoading, error } = useTokens();
+
+  // Parse symbol from "8,XBTC" format to "XBTC"
+  const parseSymbol = (symbolStr) => {
+    if (!symbolStr) return "";
+    const parts = symbolStr.split(",");
+    return parts.length === 2 ? parts[1] : symbolStr;
+  };
+
+  // Find token data from API by symbol
+  const findTokenBySymbol = (symbol) => {
+    if (!symbol || !allTokens || allTokens.length === 0) return null;
+
+    const upperSymbol = symbol.toUpperCase();
+    return allTokens.find((token) => token.symbol === upperSymbol);
+  };
+
+  const renderTokenLogo = (logo, alt = "Token", className = "") => {
+    const isUrl =
+      logo && (logo.startsWith("http://") || logo.startsWith("https://"));
+
+    if (isUrl) {
+      return (
+        <span className="relative inline-flex items-center">
+          <img
+            src={logo}
+            alt={alt}
+            className={className}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const fallback =
+                e.currentTarget.parentNode.querySelector(".fallback-logo");
+              if (fallback) fallback.style.display = "inline-block";
+            }}
+          />
+          <span
+            className={`fallback-logo ${className}`}
+            style={{ display: "none" }}
+          >
+            🪙
+          </span>
+        </span>
+      );
+    }
+
+    return <span className={className}>{logo || "🪙"}</span>;
+  };
+
+  const getTokenInfo = (tokenKey, symbolStr) => {
+    const symbol = parseSymbol(symbolStr);
+
+    const tokenData = findTokenBySymbol(symbol);
+
+    if (tokenData) {
+      return {
+        key: tokenKey,
+        symbol: tokenData.symbol,
+        logo: tokenData.metadata?.logo || "🪙",
+        name: tokenData.metadata?.name || tokenData.symbol,
+        balance: 0, // TODO: Fetch from wallet when connected
+        price: tokenData.price?.usd || 0,
+        precision: tokenData.supply?.precision || 8,
+      };
+    }
+
+    return {
+      key: tokenKey,
+      symbol: symbol,
+      logo: "🪙",
+      name: symbol,
+      balance: 0,
+      price: 0,
+      precision: 8,
+    };
+  };
+
+  // Calculate TVL (simplified - in production, fetch token prices)
+  const calculateTVL = (reserve0, reserve1, token0Info, token1Info) => {
+    if (!token0Info || !token1Info) return 0;
+
+    // Convert reserves to actual amounts (divide by 10^precision)
+    const amount0 = reserve0 / Math.pow(10, token0Info.precision);
+    const amount1 = reserve1 / Math.pow(10, token1Info.precision);
+
+    // Calculate USD value
+    const value0 = amount0 * (token0Info.price || 0);
+    const value1 = amount1 * (token1Info.price || 0);
+
+    return value0 + value1;
+  };
+
+  // Calculate mock APR (in production, calculate from fees earned)
+  const calculateAPR = (pool, config) => {
+    if (!pool || !config || pool.tvl === 0) return 0;
+
+    const estimatedDailyVolume = pool.tvl * 0.1
+
+    const swapFeePercentage = config.swap_fee / 10000;
+    const dailyFees = estimatedDailyVolume * swapFeePercentage;
+
+    const annualFees = dailyFees * 365;
+
+    const apr = (annualFees / pool.tvl) * 10
+
+    return apr;
+  };
+
+  // Calculate 24h volume (estimated from liquidity and activity)
+  const calculate24hVolume = (tvl) => {
+    return tvl * 0.1;
+  };
+
+  const calculate7dVolume = (tvl) => {
+    // 7 days of volume
+    return tvl * 0.1 * 7;
+  };
+
+  // Calculate 24h fees
+  const calculate24hFees = (volume24h, config) => {
+    if (!config) return 0;
+    const swapFeePercentage = config.swap_fee / 10000;
+    return volume24h * swapFeePercentage;
+  };
+
+  // Fetch config from blockchain
+  const fetchConfig = async () => {
+    try {
+      const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+      const result = await rpc.get_table_rows({
+        json: true,
+        code: "xprswap",
+        scope: "xprswap",
+        table: "config",
+        limit: 1,
+      });
+
+      if (result.rows.length > 0) {
+        setConfig(result.rows[0]);
+        console.log("Config loaded:", result.rows[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch config:", error);
+    }
+  };
+
+  // Fetch liquidity from blockchain
+  const fetchLiquidity = async () => {
+    if (!walletConnected || !activeSession) {
+      setUserLiquidity([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+      const result = await rpc.get_table_rows({
+        json: true,
+        code: "xprswap",
+        scope: "xprswap",
+        table: "liquidity",
+        index_position: 2,
+        key_type: "i64",
+        lower_bound: activeSession.auth.actor.toString(),
+        upper_bound: activeSession.auth.actor.toString(),
+        limit: 100,
+      });
+
+      setUserLiquidity(result.rows);
+      console.log("User liquidity positions:", result.rows);
+    } catch (error) {
+      console.error("Failed to fetch liquidity:", error);
+      setUserLiquidity([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPools = async () => {
+    try {
+      setLoading(true);
+      const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+      const result = await rpc.get_table_rows({
+        json: true,
+        code: "xprswap",
+        scope: "xprswap",
+        table: "pools",
+        limit: 100,
+      });
+
+      // Transform blockchain data to UI format
+      const transformedPools = result.rows.map((pool) => {
+        const token0Info = getTokenInfo(pool.token0, pool.token0_symbol);
+        const token1Info = getTokenInfo(pool.token1, pool.token1_symbol);
+        const tvl = calculateTVL(
+          pool.reserve0,
+          pool.reserve1,
+          token0Info,
+          token1Info
+        );
+
+        const volume24h = calculate24hVolume(tvl);
+        const volume7d = calculate7dVolume(tvl);
+        const fees24h = calculate24hFees(volume24h, config);
+
+        const userPosition = userLiquidity.find(
+          (liq) => liq.pool_id === pool.id
+        );
+
+        let yourLiquidityUSD = 0;
+        if (userPosition && pool.lp_supply > 0) {
+          // Calculate user's share: (user_lp_balance / total_lp_supply) * tvl
+          const userShare = userPosition.lp_balance / pool.lp_supply;
+          yourLiquidityUSD = tvl * userShare;
+        }
+
+        const poolWithMetrics = {
+          id: pool.id,
+          token0: token0Info,
+          token1: token1Info,
+          token0_contract: pool.token0_contract,
+          token1_contract: pool.token1_contract,
+          reserve0: pool.reserve0,
+          reserve1: pool.reserve1,
+          token0_symbol: pool.token0_symbol,
+          token1_symbol: pool.token1_symbol,
+          lp_supply: pool.lp_supply,
+          tvl: tvl,
+          volume24h: volume24h, // Mock: 10% of TVL
+          volume7d: volume7d, // Mock: 70% of TVL
+          fees24h: fees24h,
+          yourLiquidity: yourLiquidityUSD,
+          userPosition: userPosition, // Store full user position data
+          kLast: pool.kLast,
+          created_at: pool.created_at,
+        };
+
+        // return {
+        //   id: pool.id,
+        //   token0: token0Info,
+        //   token1: token1Info,
+        //   token0_contract: pool.token0_contract,
+        //   token1_contract: pool.token1_contract,
+        //   reserve0: pool.reserve0,
+        //   reserve1: pool.reserve1,
+        //   token0_symbol: pool.token0_symbol,
+        //   token1_symbol: pool.token1_symbol,
+        //   lp_supply: pool.lp_supply,
+        //   tvl: tvl,
+        //   volume24h: tvl * 0.1, // Mock: 10% of TVL
+        //   volume7d: tvl * 0.7, // Mock: 70% of TVL
+        //   fees24h: tvl * 0.0003, // Mock: 0.03% of TVL
+        //   apr: calculateAPR(),
+        //   yourLiquidity: 0, // TODO: Fetch from liquidity table based on connected wallet
+        //   kLast: pool.kLast,
+        //   created_at: pool.created_at,
+        // };
+
+        poolWithMetrics.apr = calculateAPR(poolWithMetrics, config);
+
+        return poolWithMetrics;
+      });
+
+      setPools(transformedPools);
+      console.log("Transformed pools:", transformedPools);
+    } catch (error) {
+      console.error("Failed to fetch pools:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load config on mount
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  // Load user liquidity when wallet connects
+  useEffect(() => {
+    if (walletConnected && activeSession) {
+      fetchLiquidity();
+    } else {
+      setUserLiquidity([]);
+    }
+  }, [walletConnected, activeSession]);
+
+  // Load pools when tokens and config are ready
+  useEffect(() => {
+    if (!isLoading && allTokens.length > 0) {
+      fetchPools();
+    }
+  }, [isLoading, allTokens, config, userLiquidity]);
+
+  // Format currency
+  const formatCurrency = (value) => {
+    if (!value) return "$0.00";
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(2)}K`;
+    return `$${value.toFixed(2)}`;
+  };
+
+  // Filter pools
+  const filteredPools = pools.filter((pool) => {
+    if (!pool.token0 || !pool.token1) return false;
+
+    const matchesSearch =
+      pool.token0.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pool.token1.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pool.token0.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pool.token1.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeTab === "my") return pool.yourLiquidity > 0 && matchesSearch;
+    return matchesSearch;
+  });
+
+  // Sort pools
+  const sortedPools = [...filteredPools].sort((a, b) => {
+    const multiplier = sortOrder === "asc" ? 1 : -1;
+    if (sortBy === "tvl") return (a.tvl - b.tvl) * multiplier;
+    if (sortBy === "volume") return (a.volume24h - b.volume24h) * multiplier;
+    if (sortBy === "apr") return (a.apr - b.apr) * multiplier;
+    return 0;
+  });
+
+  // Handle sort
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("desc");
+    }
+  };
+
+  // Calculate total stats
+  const totalTVL = pools.reduce((sum, pool) => sum + (pool.tvl || 0), 0);
+  const totalVolume24h = pools.reduce(
+    (sum, pool) => sum + (pool.volume24h || 0),
+    0
+  );
+  const myTotalLiquidity = pools.reduce(
+    (sum, pool) => sum + (pool.yourLiquidity || 0),
+    0
+  );
+
+  const handleAddLiquidity = (pool) => {
+    setSelectedPool(pool);
+    setToken0(pool.token0);
+    setToken1(pool.token1);
+    setAmount0("");
+    setAmount1("");
+    setShowAddLiquidity(true);
+  };
+
+  // Auto-calculate amount1 based on pool ratio
+  const handleAmount0Change = (value) => {
+    setAmount0(value);
+
+    if (!selectedPool || !value || parseFloat(value) <= 0) {
+      setAmount1("");
+      return;
+    }
+
+    const amount0Float = parseFloat(value);
+
+    // If pool has liquidity, use pool ratio
+    if (selectedPool.reserve0 > 0 && selectedPool.reserve1 > 0) {
+      const reserve0Decimal =
+        selectedPool.reserve0 / Math.pow(10, token0.precision);
+      const reserve1Decimal =
+        selectedPool.reserve1 / Math.pow(10, token1.precision);
+      const ratio = reserve1Decimal / reserve0Decimal;
+      setAmount1((amount0Float * ratio).toFixed(token1.precision));
+    }
+
+    // If pool is empty, use token prices
+    else if (token0.price > 0 && token1.price > 0) {
+      const priceRatio = token0.price / token1.price;
+      setAmount1((amount0Float * priceRatio).toFixed(token1.precision));
+    }
+  };
+
+  const handleAmount1Change = (value) => {
+    setAmount1(value);
+
+    if (!selectedPool || !value || parseFloat(value) <= 0) {
+      setAmount0("");
+      return;
+    }
+
+    const amount1Float = parseFloat(value);
+
+    // If pool has liquidity, use pool ratio
+    if (selectedPool.reserve0 > 0 && selectedPool.reserve1 > 0) {
+      const reserve0Decimal =
+        selectedPool.reserve0 / Math.pow(10, token0.precision);
+      const reserve1Decimal =
+        selectedPool.reserve1 / Math.pow(10, token1.precision);
+      const ratio = reserve0Decimal / reserve1Decimal;
+      setAmount0((amount1Float * ratio).toFixed(token0.precision));
+    }
+    // If pool is empty, use token prices
+    else if (token0.price > 0 && token1.price > 0) {
+      const priceRatio = token1.price / token0.price;
+      setAmount0((amount1Float * priceRatio).toFixed(token0.precision));
+    }
+  };
+
+  const liquidityAdd = async () => {
+    if (!walletConnected) {
+      connectWallet();
+      return;
+    }
+
+    try {
+      if (!amount0 || !amount1 || !selectedPool) {
+        alert("Please enter amounts for both tokens");
+        return;
+      }
+
+      if (parseFloat(amount0) <= 0 || parseFloat(amount1) <= 0) {
+        alert("Amounts must be greater than zero");
+        return;
+      }
+
+      setLoading(true);
+
+      const parseSymbolInfo = (symbolStr) => {
+        const parts = symbolStr.split(",");
+        console.log("symstr", symbolStr);
+        return {
+          precision: parseInt(parts[0]),
+          symbol: parts[1],
+        };
+      };
+
+      console.log("selectedPool", selectedPool);
+
+      const token0Info = selectedPool?.token0_symbol
+        ? parseSymbolInfo(selectedPool.token0_symbol)
+        : { precision: 0, symbol: "" };
+
+      const token1Info = selectedPool?.token1_symbol
+        ? parseSymbolInfo(selectedPool.token1_symbol)
+        : { precision: 0, symbol: "" };
+
+      const amount0Raw = Math.floor(
+        parseFloat(amount0) * Math.pow(10, token0Info.precision)
+      );
+      const amount1Raw = Math.floor(
+        parseFloat(amount1) * Math.pow(10, token1Info.precision)
+      );
+
+      const amount0Min = Math.floor(amount0Raw * (1 - slippage / 100));
+      const amount1Min = Math.floor(amount1Raw * (1 - slippage / 100));
+
+      const formatAsset = (rawAmount, precision, symbol) => {
+        const value = (rawAmount / Math.pow(10, precision)).toFixed(precision);
+        return `${value} ${symbol}`;
+      };
+
+      const amount0Asset = formatAsset(
+        amount0Raw,
+        token0Info.precision,
+        token0Info.symbol
+      );
+      const amount1Asset = formatAsset(
+        amount1Raw,
+        token1Info.precision,
+        token1Info.symbol
+      );
+      const amount0MinAsset = formatAsset(
+        amount0Min,
+        token0Info.precision,
+        token0Info.symbol
+      );
+      const amount1MinAsset = formatAsset(
+        amount1Min,
+        token1Info.precision,
+        token1Info.symbol
+      );
+
+      const actions = [
+        {
+          account: "xprswap",
+          name: "depositprep",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            owner: activeSession.auth.actor.toString(),
+            symbols: [
+              {
+                contract: selectedPool.token0_contract,
+                sym: selectedPool.token0_symbol,
+              },
+              {
+                contract: selectedPool.token1_contract,
+                sym: selectedPool.token1_symbol,
+              },
+            ],
+          },
+        },
+
+        // Action 2: Transfer token0
+        {
+          account: selectedPool.token0_contract,
+          name: "transfer",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            from: activeSession.auth.actor.toString(),
+            to: "xprswap",
+            quantity: amount0Asset,
+            memo: "deposit",
+          },
+        },
+
+        // Action 3: Transfer token1
+        {
+          account: selectedPool.token1_contract,
+          name: "transfer",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            from: activeSession.auth.actor.toString(),
+            to: "xprswap",
+            quantity: amount1Asset,
+            memo: "deposit",
+          },
+        },
+
+        // Action 4: liquidityadd
+        {
+          account: "xprswap",
+          name: "liquidityadd",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            owner: activeSession.auth.actor.toString(),
+            add_token1: {
+              quantity: amount0Asset,
+              contract: selectedPool.token0_contract,
+            },
+            add_token2: {
+              quantity: amount1Asset,
+              contract: selectedPool.token1_contract,
+            },
+            add_token1_min: {
+              quantity: amount0MinAsset,
+              contract: selectedPool.token0_contract,
+            },
+            add_token2_min: {
+              quantity: amount1MinAsset,
+              contract: selectedPool.token1_contract,
+            },
+          },
+        },
+
+        // Action 5: withdrawall
+        {
+          account: "xprswap",
+          name: "withdrawall",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            owner: activeSession.auth.actor.toString(),
+          },
+        },
+      ];
+
+      console.log("Executing liquidity add transaction...");
+      console.log("Transaction actions:", JSON.stringify(actions, null, 2));
+
+      const result = await activeSession.transact(
+        {
+          actions,
+        },
+        {
+          broadcast: true,
+        }
+      );
+
+      console.log("✅ Transaction successful!", result);
+
+      alert(
+        `✅ Liquidity added successfully!\n\nTransaction ID: ${result.processed.id}`
+      );
+
+      setAmount0("");
+      setAmount1("");
+      setShowAddLiquidity(false);
+      setLoading(false);
+
+      // Refresh pools data
+      await fetchPools();
+    } catch (e) {
+      console.error("❌ Transaction failed:", e);
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.poolsPage}>
+        <div className={styles.loading}>
+          <div className={styles.spinner}>⏳</div>
+          <p>Loading pools...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.poolsPage}>
+      {/* Header Stats */}
+      <div className={styles.statsHeader}>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Total Value Locked</div>
+          <div className={styles.statValue}>{formatCurrency(totalTVL)}</div>
+          <div className={cn(styles.statChange, styles.positive)}>
+            {pools.length} Pools
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>24h Volume</div>
+          <div className={styles.statValue}>
+            {formatCurrency(totalVolume24h)}
+          </div>
+          <div className={cn(styles.statChange)}>Est. based on TVL</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Your Liquidity</div>
+          <div className={styles.statValue}>
+            {formatCurrency(myTotalLiquidity)}
+          </div>
+          <div className={styles.statChange}>
+            {pools.filter((p) => p.yourLiquidity > 0).length} Active Pools
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className={styles.poolsContainer}>
+        <div className={styles.poolsHeader}>
+          <h1>Liquidity Pools</h1>
+          <button
+            className={styles.btnPrimary}
+            onClick={() => {
+              if (pools.length > 0) {
+                handleAddLiquidity(pools[0]);
+              }
+            }}
+          >
+            <span className={styles.icon}>+</span> Add Liquidity
+          </button>
+        </div>
+
+        {/* Tabs and Search */}
+        <div className={styles.controls}>
+          <div className={styles.tabs}>
+            <button
+              className={cn(styles.tab, {
+                [styles.active]: activeTab === "all",
+              })}
+              onClick={() => setActiveTab("all")}
+            >
+              All Pools ({pools.length})
+            </button>
+            <button
+              className={cn(styles.tab, {
+                [styles.active]: activeTab === "my",
+              })}
+              onClick={() => setActiveTab("my")}
+            >
+              My Pools ({pools.filter((p) => p.yourLiquidity > 0).length})
+            </button>
+          </div>
+
+          <div className={styles.searchBox}>
+            <input
+              type="text"
+              placeholder="Search pools by token..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Pools Table */}
+        <div className={styles.tableContainer}>
+          <table className={styles.poolsTable}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pool</th>
+                <th
+                  onClick={() => handleSort("tvl")}
+                  className={cn(styles.sortable)}
+                >
+                  TVL {sortBy === "tvl" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
+                <th
+                  onClick={() => handleSort("volume")}
+                  className={cn(styles.sortable)}
+                >
+                  24h Volume{" "}
+                  {sortBy === "volume" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
+                <th>7d Volume</th>
+                <th>24h Fees</th>
+                <th
+                  onClick={() => handleSort("apr")}
+                  className={cn(styles.sortable)}
+                >
+                  APR {sortBy === "apr" && (sortOrder === "asc" ? "↑" : "↓")}
+                </th>
+                <th>LP Supply</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedPools.map((pool, index) => (
+                <tr
+                  key={pool.id}
+                  className={pool.yourLiquidity > 0 ? styles.hasLiquidity : ""}
+                >
+                  <td className={styles.poolRank}>{index + 1}</td>
+                  <td className={styles.poolPair}>
+                    <div className={styles.tokenLogos}>
+                      {renderTokenLogo(
+                        pool.token0.logo,
+                        pool.token0.symbol,
+                        styles.tokenLogo
+                      )}
+                      {renderTokenLogo(
+                        pool.token1.logo,
+                        pool.token1.symbol,
+                        styles.tokenLogo
+                      )}
+                    </div>
+
+                    <div className={styles.pairInfo}>
+                      <div className={styles.pairSymbols}>
+                        {pool.token0.symbol}/{pool.token1.symbol}
+                      </div>
+                      <div className={styles.pairNames}>
+                        {pool.token0.name} - {pool.token1.name}
+                      </div>
+                    </div>
+                  </td>
+                  <td className={styles.poolTvl}>
+                    <div className={styles.value}>
+                      {formatCurrency(pool.tvl)}
+                    </div>
+                  </td>
+                  <td className={styles.poolVolume}>
+                    <div className={styles.value}>
+                      {formatCurrency(pool.volume24h)}
+                    </div>
+                  </td>
+                  <td className={styles.poolVolume}>
+                    <div className={styles.value}>
+                      {formatCurrency(pool.volume7d)}
+                    </div>
+                  </td>
+                  <td className={styles.poolFees}>
+                    <div className={styles.value}>
+                      {formatCurrency(pool.fees24h)}
+                    </div>
+                  </td>
+                  <td className={styles.poolApr}>
+                    <span
+                      className={cn(
+                        styles.aprBadge,
+                        { [styles.high]: pool.apr > 30 },
+                        { [styles.medium]: pool.apr > 20 && pool.apr <= 30 },
+                        { [styles.low]: pool.apr <= 20 }
+                      )}
+                    >
+                      {pool.apr.toFixed(1)}%
+                    </span>
+                  </td>
+                  <td className={styles.poolLiquidity}>
+                    {pool.lp_supply > 0 ? (
+                      <div className={styles.value}>
+                        {pool.lp_supply.toLocaleString()}
+                      </div>
+                    ) : (
+                      <span className={styles.noLiquidity}>Empty</span>
+                    )}
+                  </td>
+                  <td className={styles.poolActions}>
+                    <button
+                      className={cn(styles.btnAction, styles.btnAdd)}
+                      onClick={() => handleAddLiquidity(pool)}
+                    >
+                      Add
+                    </button>
+                    {pool.yourLiquidity > 0 && (
+                      <button
+                        className={cn(styles.btnAction, styles.btnRemove)}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {sortedPools.length === 0 && !loading && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🏊</div>
+            <h3>No pools found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
+        )}
+      </div>
+
+      {/* Add Liquidity Modal */}
+      {showAddLiquidity && token0 && token1 && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => setShowAddLiquidity(false)}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Add Liquidity</h2>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setShowAddLiquidity(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {selectedPool && (
+                <div className={styles.poolInfoBanner}>
+                  <div className={styles.poolPairLarge}>
+                    {renderTokenLogo(
+                      token0.logo,
+                      token0.symbol,
+                      styles.tokenLogoLarge
+                    )}
+                    {renderTokenLogo(
+                      token1.logo,
+                      token1.symbol,
+                      styles.tokenLogoLarge
+                    )}
+                    <span className={styles.pairText}>
+                      {token0.symbol}/{token1.symbol}
+                    </span>
+                  </div>
+
+                  <div className={styles.poolStatsInline}>
+                    <div className={styles.statInline}>
+                      <span className={styles.label}>APR:</span>
+                      <span className={cn(styles.value, styles.apr)}>
+                        {selectedPool.apr.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className={styles.statInline}>
+                      <span className={styles.label}>TVL:</span>
+                      <span className={styles.value}>
+                        {formatCurrency(selectedPool.tvl)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Token Input 1 */}
+              <div className={styles.inputGroup}>
+                <div className={styles.inputHeader}>
+                  <label>Token 1</label>
+                  <span className={styles.balance}>
+                    Balance: {token0.balance?.toFixed(4) || "0.0000"}
+                  </span>
+                </div>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="number"
+                    placeholder="0.0"
+                    value={amount0}
+                    onChange={(e) => handleAmount0Change(e.target.value)}
+                  />
+
+                  <div className={styles.tokenSelect}>
+                    {renderTokenLogo(
+                      token0.logo,
+                      token0.symbol,
+                      styles.tokenLogo
+                    )}
+                    <span className={styles.tokenSymbol}>{token0.symbol}</span>
+                  </div>
+                </div>
+                <button
+                  className={styles.maxBtn}
+                  onClick={() =>
+                    handleAmount0Change(token0.balance?.toString() || "0")
+                  }
+                >
+                  MAX
+                </button>
+              </div>
+
+              {/* Plus Icon */}
+              <div className={styles.inputDivider}>
+                <div className={styles.plusIcon}>+</div>
+              </div>
+
+              {/* Token Input 2 */}
+              <div className={styles.inputGroup}>
+                <div className={styles.inputHeader}>
+                  <label>Token 2</label>
+                  <span className={styles.balance}>
+                    Balance: {token1.balance?.toFixed(6) || "0.000000"}
+                  </span>
+                </div>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="number"
+                    placeholder="0.0"
+                    value={amount1}
+                    // onChange={(e) => setAmount1(e.target.value)}
+                    onChange={(e) => handleAmount1Change(e.target.value)}
+                  />
+
+                  <div className={styles.tokenSelect}>
+                    {renderTokenLogo(
+                      token1.logo,
+                      token1.symbol,
+                      styles.tokenLogo
+                    )}
+                    <span className={styles.tokenSymbol}>{token1.symbol}</span>
+                  </div>
+                </div>
+                <button
+                  className={styles.maxBtn}
+                  onClick={() =>
+                    handleAmount1Change(token0.balance?.toString() || "0")
+                  }
+                >
+                  MAX
+                </button>
+              </div>
+
+              {/* Slippage Settings */}
+              <div className={styles.settingsSection}>
+                <div className={styles.settingHeader}>
+                  <span>Slippage Tolerance</span>
+                  <span className={styles.settingValue}>{slippage}%</span>
+                </div>
+                <div className={styles.slippageOptions}>
+                  {[0.1, 0.5, 1.0].map((value) => (
+                    <button
+                      key={value}
+                      className={cn(styles.slippageBtn, {
+                        [styles.active]: slippage === value,
+                      })}
+                      onClick={() => setSlippage(value)}
+                    >
+                      {value}%
+                    </button>
+                  ))}
+                  <input
+                    type="number"
+                    className={styles.customSlippage}
+                    placeholder="Custom"
+                    onChange={(e) =>
+                      setSlippage(parseFloat(e.target.value) || 0.5)
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Price Info */}
+              {selectedPool && amount0 && selectedPool.reserve0 > 0 && (
+                <div className={styles.priceInfo}>
+                  <div className={styles.infoRow}>
+                    <span>Price</span>
+                    <span>
+                      1 {token0.symbol} ={" "}
+                      {(selectedPool.reserve1 / selectedPool.reserve0).toFixed(
+                        6
+                      )}{" "}
+                      {token1.symbol}
+                    </span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span>Pool Reserves</span>
+                    <span>
+                      {selectedPool.reserve0.toLocaleString()} /{" "}
+                      {selectedPool.reserve1.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedPool && selectedPool.reserve0 === 0 && (
+                <div className={styles.priceInfo}>
+                  <div className={styles.infoRow}>
+                    <span>⚠️ Empty Pool</span>
+                    <span>You'll set the initial price</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className={styles.modalActions}>
+                <button
+                  className={styles.btnSecondary}
+                  onClick={() => setShowAddLiquidity(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.btnPrimary}
+                  disabled={!amount0 || !amount1}
+                  onClick={() => liquidityAdd()}
+                >
+                  {loading ? "Processing..." : "Add Liquidity"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PoolsPage;

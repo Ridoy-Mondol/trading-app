@@ -14,7 +14,7 @@ export const useTokens = () => {
       const data = await res.json();
 
       return data
-        .filter((token) => token.chain === "proton")
+        .filter((token) => token.chain === "proton-test")
         .map((t, i) => ({ ...t, _originalIndex: i }));
     },
     staleTime: 30 * 1000,
