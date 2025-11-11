@@ -26,7 +26,7 @@ const PoolsPage = () => {
   const [slippage, setSlippage] = useState(0.5);
 
   const { activeSession, walletConnected, connectWallet } = useWallet();
-  const { data: allTokens = [], isLoading, error } = useTokens();
+  const { data: allTokens = [], isLoading } = useTokens();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
 
   // Parse symbol from "8,XBTC" format to "XBTC"
@@ -47,14 +47,13 @@ const PoolsPage = () => {
   // Find user balance for a specific token
   const getUserTokenBalance = (symbol, contract) => {
     if (!userBalance || userBalance.length === 0) return 0;
-    
+
     const balance = userBalance.find(
       (b) => b.symbol === symbol && b.contract === contract
     );
-    
+
     return balance ? balance.amount : 0;
   };
-
 
   const getTokenInfo = (tokenKey, symbolStr) => {
     const symbol = parseSymbol(symbolStr);
@@ -67,7 +66,7 @@ const PoolsPage = () => {
         symbol: tokenData.symbol,
         logo: tokenData.metadata?.logo || "🪙",
         name: tokenData.metadata?.name || tokenData.symbol,
-        balance: 0, 
+        balance: 0,
         price: tokenData.price?.usd || 0,
         precision: tokenData.supply?.precision || 8,
       };
@@ -247,7 +246,6 @@ const PoolsPage = () => {
     }
   };
 
-
   const fetchPools = async () => {
     try {
       setLoading(true);
@@ -264,8 +262,14 @@ const PoolsPage = () => {
         const token0Info = getTokenInfo(pool.token0, pool.token0_symbol);
         const token1Info = getTokenInfo(pool.token1, pool.token1_symbol);
 
-        token0Info.balance = getUserTokenBalance(token0Info.symbol, pool.token0_contract);
-        token1Info.balance = getUserTokenBalance(token1Info.symbol, pool.token1_contract);
+        token0Info.balance = getUserTokenBalance(
+          token0Info.symbol,
+          pool.token0_contract
+        );
+        token1Info.balance = getUserTokenBalance(
+          token1Info.symbol,
+          pool.token1_contract
+        );
 
         const tvl = calculateTVL(
           pool.reserve0,
@@ -304,7 +308,7 @@ const PoolsPage = () => {
           volume7d: volume7d, // Mock: 70% of TVL
           fees24h: fees24h,
           yourLiquidity: yourLiquidityUSD,
-          userPosition: userPosition, // Store full user position data
+          userPosition: userPosition,
           kLast: pool.kLast,
           created_at: pool.created_at,
         };
@@ -486,12 +490,16 @@ const PoolsPage = () => {
       }
 
       if (parseFloat(amount0) > token0.balance) {
-        alert(`Insufficient ${token0.symbol} balance. You have ${token0.balance} ${token0.symbol}`);
+        alert(
+          `Insufficient ${token0.symbol} balance. You have ${token0.balance} ${token0.symbol}`
+        );
         return;
       }
 
       if (parseFloat(amount1) > token1.balance) {
-        alert(`Insufficient ${token1.symbol} balance. You have ${token1.balance} ${token1.symbol}`);
+        alert(
+          `Insufficient ${token1.symbol} balance. You have ${token1.balance} ${token1.symbol}`
+        );
         return;
       }
 
@@ -684,7 +692,7 @@ const PoolsPage = () => {
       setAmount1("");
       setShowAddLiquidity(false);
       setLoading(false);
-      
+
       await fetchLiquidity();
       await fetchAllTokens();
       await fetchPools();
@@ -922,7 +930,7 @@ const PoolsPage = () => {
                     >
                       Add
                     </button>
-                    {(pool.yourLiquidity > 0 && activeTab === "my") && (
+                    {pool.yourLiquidity > 0 && activeTab === "my" && (
                       <button
                         className={cn(styles.btnAction, styles.btnRemove)}
                       >
@@ -1003,7 +1011,13 @@ const PoolsPage = () => {
                 <div className={styles.inputHeader}>
                   <label>Token 1</label>
                   <span className={styles.balance}>
-                    Balance: {token0.balance?.toFixed(token0.precision) || "0.0000"}
+                    Balance:{" "}
+                    {token0.balance?.toFixed(token0.precision) || "0.0000"}
+                    {token0.balance > 0 && (
+                      <span style={{ color: "#22c55e", marginLeft: "4px" }}>
+                        ✓
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className={styles.inputWrapper}>
@@ -1023,14 +1037,27 @@ const PoolsPage = () => {
                     <span className={styles.tokenSymbol}>{token0.symbol}</span>
                   </div>
                 </div>
-                <button
-                  className={styles.maxBtn}
-                  onClick={() =>
-                    handleAmount0Change(token0.balance?.toString() || "0")
-                  }
-                >
-                  MAX
-                </button>
+                {token0.balance > 0 && (
+                  <button
+                    className={styles.maxBtn}
+                    onClick={() =>
+                      handleAmount0Change(token0.balance?.toString() || "0")
+                    }
+                  >
+                    MAX
+                  </button>
+                )}
+                {parseFloat(amount0) > token0.balance && (
+                  <div
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    Insufficient {token0.symbol} balance
+                  </div>
+                )}
               </div>
 
               {/* Plus Icon */}
@@ -1043,7 +1070,13 @@ const PoolsPage = () => {
                 <div className={styles.inputHeader}>
                   <label>Token 2</label>
                   <span className={styles.balance}>
-                    Balance: {token1.balance?.toFixed(token1.precision) || "0.000000"}
+                    Balance:{" "}
+                    {token1.balance?.toFixed(token1.precision) || "0.0"}
+                    {token1.balance > 0 && (
+                      <span style={{ color: "#22c55e", marginLeft: "4px" }}>
+                        ✓
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className={styles.inputWrapper}>
@@ -1063,14 +1096,27 @@ const PoolsPage = () => {
                     <span className={styles.tokenSymbol}>{token1.symbol}</span>
                   </div>
                 </div>
-                <button
-                  className={styles.maxBtn}
-                  onClick={() =>
-                    handleAmount1Change(token1.balance?.toString() || "0")
-                  }
-                >
-                  MAX
-                </button>
+                {token1.balance > 0 && (
+                  <button
+                    className={styles.maxBtn}
+                    onClick={() =>
+                      handleAmount1Change(token1.balance?.toString() || "0")
+                    }
+                  >
+                    MAX
+                  </button>
+                )}
+                {parseFloat(amount1) > token1.balance && (
+                  <div
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    Insufficient {token1.symbol} balance
+                  </div>
+                )}
               </div>
 
               {/* Slippage Settings */}
@@ -1109,19 +1155,33 @@ const PoolsPage = () => {
                     <span>Price</span>
                     <span>
                       1 {token0.symbol} ={" "}
-                      {(selectedPool.reserve1 / selectedPool.reserve0).toFixed(
-                        6
-                      )}{" "}
+                      {(
+                        selectedPool.reserve1 /
+                        Math.pow(10, token1.precision) /
+                        (selectedPool.reserve0 / Math.pow(10, token0.precision))
+                      ).toFixed(6)}{" "}
                       {token1.symbol}
                     </span>
                   </div>
                   <div className={styles.infoRow}>
                     <span>Pool Reserves</span>
                     <span>
-                      {selectedPool.reserve0.toLocaleString()} /{" "}
-                      {selectedPool.reserve1.toLocaleString()}
+                      {(
+                        selectedPool.reserve0 / Math.pow(10, token0.precision)
+                      ).toFixed(token0.precision)}{" "}
+                      {token0.symbol} /{" "}
+                      {(
+                        selectedPool.reserve1 / Math.pow(10, token1.precision)
+                      ).toFixed(token1.precision)}{" "}
+                      {token1.symbol}
                     </span>
                   </div>
+                  {selectedPool.yourLiquidity > 0 && (
+                    <div className={styles.infoRow}>
+                      <span>Your Liquidity</span>
+                      <span>{formatCurrency(selectedPool.yourLiquidity)}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1131,6 +1191,16 @@ const PoolsPage = () => {
                     <span>⚠️ Empty Pool</span>
                     <span>You'll set the initial price</span>
                   </div>
+                  {token0.price > 0 && token1.price > 0 && (
+                    <div className={styles.infoRow}>
+                      <span>Suggested Price (Market)</span>
+                      <span>
+                        1 {token0.symbol} ={" "}
+                        {(token0.price / token1.price).toFixed(6)}{" "}
+                        {token1.symbol}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1145,14 +1215,20 @@ const PoolsPage = () => {
                 <button
                   className={styles.btnPrimary}
                   disabled={
-                    !amount0 || 
+                    !amount0 ||
                     !amount1 ||
                     parseFloat(amount0) > token0.balance ||
-                    parseFloat(amount1) > token1.balance
+                    parseFloat(amount1) > token1.balance ||
+                    loading
                   }
                   onClick={() => liquidityAdd()}
                 >
-                  {loading ? "Processing..." : "Add Liquidity"}
+                  {loading
+                    ? "Processing..."
+                    : parseFloat(amount0) > token0.balance ||
+                      parseFloat(amount1) > token1.balance
+                    ? "Insufficient Balance"
+                    : "Add Liquidity"}
                 </button>
               </div>
             </div>
