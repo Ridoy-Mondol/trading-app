@@ -1,0 +1,19 @@
+diff --git a/node_modules/@bloks/numbers/dist/index.mjs b/node_modules/@bloks/numbers/dist/index.mjs
+index 06c2bb7..6faac2e 100644
+--- a/node_modules/@bloks/numbers/dist/index.mjs
++++ b/node_modules/@bloks/numbers/dist/index.mjs
+@@ -435,10 +435,10 @@ function parseCpu(us) {
+ 
+ // src/time.ts
+ import dayjs from "dayjs";
+-import relativeTimePlugin from "dayjs/plugin/relativeTime";
+-import utcPlugin from "dayjs/plugin/utc";
+-import timezonePlugin from "dayjs/plugin/timezone";
+-import advancedFormatPlugin from "dayjs/plugin/advancedFormat";
++import relativeTimePlugin from "dayjs/plugin/relativeTime.js";
++import utcPlugin from "dayjs/plugin/utc.js";
++import timezonePlugin from "dayjs/plugin/timezone.js";
++import advancedFormatPlugin from "dayjs/plugin/advancedFormat.js";
+ dayjs.extend(relativeTimePlugin);
+ dayjs.extend(utcPlugin);
+ dayjs.extend(timezonePlugin);
