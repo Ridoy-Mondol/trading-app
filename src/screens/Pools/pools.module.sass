@@ -620,6 +620,24 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                             font-weight: 600
                             color: $text-primary
 
+                    .tokenSelectorOverlay
+                        position: absolute
+                        top: calc(100% + 8px)
+                        right: 0
+                        z-index: 1000
+                        width: 100%
+                        background: white
+                        border: 1px solid #e5e7eb
+                        border-radius: 12px
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1)
+                        padding: 20px
+                        min-width: 420px
+  
+                        +dark
+                        background: $n1
+                        border-color: $n3
+
+
                 .maxBtn
                     position: absolute
                     right: 120px
@@ -637,6 +655,12 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
                     &:hover
                         background: rgba($primary-color, 0.25)
+
+                
+
+                
+
+
 
             .inputDivider
                 display: flex
@@ -820,3 +844,5 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
         max-width: 100% !important
         margin: 0 !important
         border-radius: $border-radius $border-radius 0 0 !important
+  
+  
