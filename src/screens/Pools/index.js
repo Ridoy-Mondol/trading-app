@@ -4,7 +4,6 @@ import cn from "classnames";
 import { JsonRpc } from "eosjs";
 import { useWallet } from "../../context/WalletContext";
 import { useTokens } from "../../hooks/useTokens";
-import TokenSelector from "../../components/TokenSelector";
 
 const PoolsPage = () => {
   const [pools, setPools] = useState([]);
@@ -18,10 +17,6 @@ const PoolsPage = () => {
   const [userLiquidity, setUserLiquidity] = useState([]);
   const [config, setConfig] = useState(null);
   const [userBalance, setUserBalance] = useState([]);
-
-  // Token selection dropdown states
-  const [showToken0Dropdown, setShowToken0Dropdown] = useState(false);
-  const [showToken1Dropdown, setShowToken1Dropdown] = useState(false);
 
   // Add liquidity form state
   const [token0, setToken0] = useState(null);
@@ -59,90 +54,6 @@ const PoolsPage = () => {
 
     return balance ? balance.amount : 0;
   };
-
-
-  // Get all unique tokens from pools
-  const getAvailableTokens = () => {
-    const tokenMap = new Map();
-    
-    pools.forEach((pool) => {
-      // Add token0
-      if (pool.token0 && pool.token0.symbol) {
-        const key = `${pool.token0.symbol}_${pool.token0_contract}`;
-        if (!tokenMap.has(key)) {
-          tokenMap.set(key, {
-            ...pool.token0,
-            contract: pool.token0_contract,
-            balance: getUserTokenBalance(pool.token0.symbol, pool.token0_contract),
-          });
-        }
-      }
-      
-      // Add token1
-      if (pool.token1 && pool.token1.symbol) {
-        const key = `${pool.token1.symbol}_${pool.token1_contract}`;
-        if (!tokenMap.has(key)) {
-          tokenMap.set(key, {
-            ...pool.token1,
-            contract: pool.token1_contract,
-            balance: getUserTokenBalance(pool.token1.symbol, pool.token1_contract),
-          });
-        }
-      }
-    });
-    
-    return Array.from(tokenMap.values());
-  };
-
-
-
-  // Handle token selection
-  const handleSelectToken0 = (token) => {
-    setToken0(token);
-    setShowToken0Dropdown(false);
-    setAmount0("");
-    setAmount1("");
-    
-    // If token1 is already selected, find or create a pool
-    if (token1) {
-      findPoolForPair(token, token1);
-    }
-  };
-
-  const handleSelectToken1 = (token) => {
-    setToken1(token);
-    setShowToken1Dropdown(false);
-    setAmount0("");
-    setAmount1("");
-    
-    // If token0 is already selected, find or create a pool
-    if (token0) {
-      findPoolForPair(token0, token);
-    }
-  };
-
-  // Find pool for selected token pair
-  const findPoolForPair = (tokenA, tokenB) => {
-    const pool = pools.find((p) => {
-      return (
-        (p.token0.symbol === tokenA.symbol && p.token1.symbol === tokenB.symbol) ||
-        (p.token0.symbol === tokenB.symbol && p.token1.symbol === tokenA.symbol)
-      );
-    });
-    
-    if (pool) {
-      setSelectedPool(pool);
-      // Update token order to match pool
-      if (pool.token0.symbol === tokenA.symbol) {
-        setToken0({...pool.token0, contract: pool.token0_contract});
-        setToken1({...pool.token1, contract: pool.token1_contract});
-      } else {
-        setToken0({...pool.token1, contract: pool.token1_contract});
-        setToken1({...pool.token0, contract: pool.token0_contract});
-      }
-    }
-  };
-
 
   const getTokenInfo = (tokenKey, symbolStr) => {
     const symbol = parseSymbol(symbolStr);
@@ -438,28 +349,6 @@ const PoolsPage = () => {
       fetchPools();
     }
   }, [isLoading, allTokens, config, userLiquidity, userBalance]);
-
-  // Close dropdowns when clicking outside
-  // Close dropdowns when clicking outside
-useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (showToken0Dropdown || showToken1Dropdown) {
-      const target = event.target;
-      const isTokenSelect = target.closest('[class*="tokenSelect"]');
-      const isTokenSelector = target.closest('[class*="tokenSelectorOverlay"]');
-      
-      if (!isTokenSelect && !isTokenSelector) {
-        setShowToken0Dropdown(false);
-        setShowToken1Dropdown(false);
-      }
-    }
-  };
-
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, [showToken0Dropdown, showToken1Dropdown]);
 
   // Format currency
   const formatCurrency = (value) => {
@@ -1139,52 +1028,14 @@ useEffect(() => {
                     onChange={(e) => handleAmount0Change(e.target.value)}
                   />
 
-                  {/* <div className={styles.tokenSelect}>
+                  <div className={styles.tokenSelect}>
                     {renderTokenLogo(
                       token0.logo,
                       token0.symbol,
                       styles.tokenLogo
                     )}
                     <span className={styles.tokenSymbol}>{token0.symbol}</span>
-                  </div> */}
-
-                  <div 
-                    className={styles.tokenSelect}
-                    onClick={() => setShowToken0Dropdown(!showToken0Dropdown)}
-                    style={{ cursor: "pointer", position: "relative" }}
-                  >
-                    {token0 ? (
-                      <>
-                        {renderTokenLogo(
-                          token0.logo,
-                          token0.symbol,
-                          styles.tokenLogo
-                        )}
-                        <span className={styles.tokenSymbol}>{token0.symbol}</span>
-                        <span style={{ marginLeft: "4px" }}>▼</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className={styles.tokenSymbol}>Select Token</span>
-                        <span style={{ marginLeft: "4px" }}>▼</span>
-                      </>
-                    )}
                   </div>
-
-                  {/* Token 0 Dropdown */}
-                  
-                  {showToken0Dropdown && (
-                    <div className={styles.tokenSelectorOverlay}>
-                      <TokenSelector
-                        tokens={getAvailableTokens()}
-                        onSelect={handleSelectToken0}
-                        excludeToken={token1}
-                        renderTokenLogo={renderTokenLogo}
-                      />
-                    </div>
-                  )}
-
-
                 </div>
 
                 {token0.balance > 0 && (
@@ -1237,59 +1088,15 @@ useEffect(() => {
                     onChange={(e) => handleAmount1Change(e.target.value)}
                   />
 
-                  {/* <div className={styles.tokenSelect}>
+                  <div className={styles.tokenSelect}>
                     {renderTokenLogo(
                       token1.logo,
                       token1.symbol,
                       styles.tokenLogo
                     )}
                     <span className={styles.tokenSymbol}>{token1.symbol}</span>
-                  </div> */}
-
-
-                  <div 
-                    className={styles.tokenSelect}
-                    onClick={() => setShowToken1Dropdown(!showToken1Dropdown)}
-                    style={{ cursor: "pointer", position: "relative" }}
-                  >
-                    {token1 ? (
-                      <>
-                        {renderTokenLogo(
-                          token1.logo,
-                          token1.symbol,
-                          styles.tokenLogo
-                        )}
-                        <span className={styles.tokenSymbol}>{token1.symbol}</span>
-                        <span style={{ marginLeft: "4px" }}>▼</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className={styles.tokenSymbol}>Select Token</span>
-                        <span style={{ marginLeft: "4px" }}>▼</span>
-                      </>
-                    )}
                   </div>
-
-
-                  {/* Token 1 Dropdown */}
-                  {showToken1Dropdown && (
-                    <div className={styles.tokenSelectorOverlay}>
-                      <TokenSelector
-                        tokens={getAvailableTokens()}
-                        onSelect={handleSelectToken1}
-                        excludeToken={token0}
-                        renderTokenLogo={renderTokenLogo}
-                      />
-                    </div>
-                  )}
-
-
                 </div>
-
-
-                
-
-
 
                 {token1.balance > 0 && (
                   <button
