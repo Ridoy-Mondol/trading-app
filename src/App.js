@@ -29,6 +29,7 @@ import ForgotPassword from "./screens/ForgotPassword";
 import PageList from "./screens/PageList";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Pools from "./screens/Pools";
+import Swap from "./screens/Swap";
 import { useUser } from "./context/UserContext"; 
 import Loader from "./components/Loader";
 
@@ -122,6 +123,14 @@ function App() {
           element={
             <Page>
               <Pools />
+            </Page>
+          }
+        />
+        <Route
+          path="swap"
+          element={
+            <Page>
+              <Swap />
             </Page>
           }
         />
