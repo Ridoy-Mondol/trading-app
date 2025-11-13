@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./pools.module.sass";
 import cn from "classnames";
 import { JsonRpc } from "eosjs";
@@ -28,6 +29,7 @@ const PoolsPage = () => {
   const { activeSession, walletConnected, connectWallet } = useWallet();
   const { data: allTokens = [], isLoading } = useTokens();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+  const navigate = useNavigate();
 
   // Parse symbol from "8,XBTC" format to "XBTC"
   const parseSymbol = (symbolStr) => {
@@ -358,15 +360,30 @@ const PoolsPage = () => {
     return `$${value.toFixed(2)}`;
   };
 
-  // Filter pools
   const filteredPools = pools.filter((pool) => {
     if (!pool.token0 || !pool.token1) return false;
 
-    const matchesSearch =
-      pool.token0.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pool.token1.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pool.token0.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pool.token1.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const search = searchQuery.toLowerCase().trim();
+    const token0Symbol = pool.token0.symbol.toLowerCase();
+    const token1Symbol = pool.token1.symbol.toLowerCase();
+    const token0Name = pool.token0.name.toLowerCase();
+    const token1Name = pool.token1.name.toLowerCase();
+
+    // Match individual token searches
+    const matchesSingle =
+      token0Symbol.includes(search) ||
+      token1Symbol.includes(search) ||
+      token0Name.includes(search) ||
+      token1Name.includes(search);
+
+    // Combine pool pairs
+    const poolCombo1 = `${token0Symbol}/${token1Symbol}`;
+    const poolCombo2 = `${token1Symbol}/${token0Symbol}`;
+
+    const matchesPair =
+      poolCombo1.includes(search) || poolCombo2.includes(search);
+
+    const matchesSearch = matchesSingle || matchesPair;
 
     if (activeTab === "my") return pool.yourLiquidity > 0 && matchesSearch;
     return matchesSearch;
@@ -402,7 +419,8 @@ const PoolsPage = () => {
     0
   );
 
-  const handleAddLiquidity = (pool) => {
+  const handleAddLiquidity = (e, pool) => {
+    e.stopPropagation();
     setSelectedPool(pool);
     setToken0(pool.token0);
     setToken1(pool.token1);
@@ -779,9 +797,9 @@ const PoolsPage = () => {
           <h1>Liquidity Pools</h1>
           <button
             className={styles.btnPrimary}
-            onClick={() => {
+            onClick={(e) => {
               if (pools.length > 0) {
-                handleAddLiquidity(pools[0]);
+                handleAddLiquidity(e, pools[0]);
               }
             }}
           >
@@ -813,7 +831,7 @@ const PoolsPage = () => {
           <div className={styles.searchBox}>
             <input
               type="text"
-              placeholder="Search pools by token..."
+              placeholder="Search tokens and pools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -856,7 +874,8 @@ const PoolsPage = () => {
               {sortedPools.map((pool, index) => (
                 <tr
                   key={pool.id}
-                  className={pool.yourLiquidity > 0 ? styles.hasLiquidity : ""}
+                  className={activeTab === "my" ? styles.myLiquidity : ""}
+                  onClick={() => navigate("/swap")}
                 >
                   <td className={styles.poolRank}>{index + 1}</td>
                   <td className={styles.poolPair}>
@@ -926,7 +945,7 @@ const PoolsPage = () => {
                   <td className={styles.poolActions}>
                     <button
                       className={cn(styles.btnAction, styles.btnAdd)}
-                      onClick={() => handleAddLiquidity(pool)}
+                      onClick={(e) => handleAddLiquidity(e, pool)}
                     >
                       Add
                     </button>
@@ -1217,16 +1236,19 @@ const PoolsPage = () => {
                 <button
                   className={styles.btnPrimary}
                   disabled={
-                    !amount0 ||
-                    !amount1 ||
-                    parseFloat(amount0) > token0.balance ||
-                    parseFloat(amount1) > token1.balance ||
-                    loading
+                    activeSession &&
+                    (!amount0 ||
+                      !amount1 ||
+                      parseFloat(amount0) > token0.balance ||
+                      parseFloat(amount1) > token1.balance ||
+                      loading)
                   }
                   onClick={() => liquidityAdd()}
                 >
                   {loading
                     ? "Processing..."
+                    : !activeSession
+                    ? "Connect Wallet"
                     : parseFloat(amount0) > token0.balance ||
                       parseFloat(amount1) > token1.balance
                     ? "Insufficient Balance"

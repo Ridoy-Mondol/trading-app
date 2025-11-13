@@ -36,6 +36,14 @@ const navigation = [
     url: "/market",
   },
   {
+    title: "Pools",
+    url: "/pools",
+  },
+  {
+    title: "Swap",
+    url: "/swap",
+  },
+  {
     title: "Discover",
     url: "/learn-crypto",
   },
