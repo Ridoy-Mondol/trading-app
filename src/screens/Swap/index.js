@@ -2,6 +2,8 @@ import { useState } from "react";
 import styles from "./swap.module.sass";
 import cn from "classnames";
 import Icon from "../../components/Icon";
+import { Repeat, ArrowUpDown } from "lucide-react";
+import { MdRefresh, MdSettings } from "react-icons/md";
 
 const SwapPage = () => {
   const [fromToken, setFromToken] = useState({
@@ -24,17 +26,20 @@ const SwapPage = () => {
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
-  const [independentField, setIndependentField] = useState("from");
+  const [showDetails, setShowDetails] = useState(false);
 
   // Mock price data
   const priceImpact = 0.02;
   const exchangeRate = (fromToken.price / toToken.price).toFixed(6);
-  const minimumReceived = toAmount ? (parseFloat(toAmount) * (1 - slippage / 100)).toFixed(6) : "0";
-  const liquidityProviderFee = fromAmount ? (parseFloat(fromAmount) * 0.003).toFixed(6) : "0";
+  const minimumReceived = toAmount
+    ? (parseFloat(toAmount) * (1 - slippage / 100)).toFixed(6)
+    : "0";
+  const liquidityProviderFee = fromAmount
+    ? (parseFloat(fromAmount) * 0.003).toFixed(6)
+    : "0";
 
   const handleFromAmountChange = (value) => {
     setFromAmount(value);
-    setIndependentField("from");
     if (value && !isNaN(value)) {
       const calculated = (parseFloat(value) * fromToken.price) / toToken.price;
       setToAmount(calculated.toFixed(6));
@@ -45,7 +50,6 @@ const SwapPage = () => {
 
   const handleToAmountChange = (value) => {
     setToAmount(value);
-    setIndependentField("to");
     if (value && !isNaN(value)) {
       const calculated = (parseFloat(value) * toToken.price) / fromToken.price;
       setFromAmount(calculated.toFixed(6));
@@ -67,235 +71,235 @@ const SwapPage = () => {
   };
 
   const handleSwap = () => {
-    // TODO: Implement swap logic
     alert("Swap functionality will be implemented");
   };
 
   return (
-    <div className={styles.page}>
+    <div className={styles.swap}>
       <div className={styles.container}>
-        {/* Header */}
-        <div className={styles.head}>
-          <div className={styles.title}>Swap</div>
-          <div className={styles.info}>Trade tokens in an instant</div>
-        </div>
-
-        {/* Main Swap Card */}
-        <div className={styles.wrapper}>
-          <div className={styles.card}>
-            {/* Top Bar with Settings */}
-            <div className={styles.top}>
-              <div className={styles.line}>
-                <div className={styles.subtitle}>Exchange</div>
-                <div className={styles.actions}>
+        <div className={styles.content}>
+          {/* Main Swap Card */}
+          <div className={styles.main}>
+            <div className={styles.card}>
+              {/* Card Header */}
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                  <Repeat size={20} />
+                  <span>Exchange</span>
+                </div>
+                <div className={styles.cardActions}>
                   <button
-                    className={cn(styles.action, "tooltip-bottom")}
-                    data-tooltip="Refresh"
-                    onClick={() => handleFromAmountChange(fromAmount)}
+                    className={cn(styles.iconBtn, "tooltip-bottom")}
+                    data-tooltip="Refresh price"
                   >
-                    <Icon name="refresh" size="20" />
+                    <MdRefresh size={20} />
                   </button>
                   <button
-                    className={cn(styles.action, { [styles.active]: showSettings })}
+                    className={cn(styles.iconBtn, {
+                      [styles.active]: showSettings,
+                    })}
                     onClick={() => setShowSettings(!showSettings)}
                   >
-                    <Icon name="settings" size="20" />
+                    <MdSettings size={20} />
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Settings Panel */}
-            {showSettings && (
-              <div className={styles.settings}>
-                <div className={styles.settingsTitle}>Transaction Settings</div>
-                <div className={styles.field}>
-                  <div className={styles.label}>Slippage Tolerance</div>
-                  <div className={styles.slippageOptions}>
-                    {[0.1, 0.5, 1.0].map((value) => (
-                      <button
-                        key={value}
-                        className={cn(styles.slippageBtn, {
-                          [styles.active]: slippage === value,
-                        })}
-                        onClick={() => setSlippage(value)}
-                      >
-                        {value}%
-                      </button>
-                    ))}
-                    <input
-                      type="number"
-                      className={styles.customSlippage}
-                      placeholder="Custom"
-                      step="0.1"
-                      min="0"
-                      max="50"
-                      onChange={(e) => setSlippage(parseFloat(e.target.value) || 0.5)}
-                    />
+              {/* Settings Panel */}
+              {showSettings && (
+                <div className={styles.settings}>
+                  <div className={styles.settingsRow}>
+                    <div className={styles.settingsLabel}>
+                      <Icon name="lightning" size="16" />
+                      Slippage Tolerance
+                    </div>
+                    <div className={styles.slippageGroup}>
+                      {[0.1, 0.5, 1.0].map((value) => (
+                        <button
+                          key={value}
+                          className={cn(styles.slippageBtn, {
+                            [styles.active]: slippage === value,
+                          })}
+                          onClick={() => setSlippage(value)}
+                        >
+                          {value}%
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        className={styles.slippageInput}
+                        placeholder="Custom"
+                        onChange={(e) =>
+                          setSlippage(parseFloat(e.target.value) || 0.5)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* From Token Input */}
-            <div className={styles.group}>
-              <div className={styles.label}>From</div>
-              <div className={styles.inputBox}>
-                <input
-                  type="number"
-                  className={styles.input}
-                  value={fromAmount}
-                  onChange={(e) => handleFromAmountChange(e.target.value)}
-                  placeholder="0.0"
-                />
-                <div className={styles.tokenActions}>
-                  <button className={styles.max} onClick={handleMaxClick}>
-                    MAX
-                  </button>
-                  <button className={styles.tokenSelect}>
-                    <div className={styles.tokenLogo}>{fromToken.logo}</div>
-                    <div className={styles.tokenInfo}>
-                      <div className={styles.tokenSymbol}>{fromToken.symbol}</div>
-                    </div>
-                    <Icon name="arrow-down" size="16" />
-                  </button>
+              {/* From Token */}
+              <div className={styles.tokenBox}>
+                <div className={styles.tokenHeader}>
+                  <span className={styles.tokenLabel}>From</span>
+                  <div className={styles.tokenBalance}>
+                    <Icon name="wallet" size="14" />
+                    Balance: {fromToken.balance.toFixed(4)}
+                  </div>
                 </div>
-              </div>
-              <div className={styles.balance}>
-                <span>Balance: {fromToken.balance.toFixed(4)}</span>
+                <div className={styles.tokenInput}>
+                  <input
+                    type="number"
+                    className={styles.amountInput}
+                    value={fromAmount}
+                    onChange={(e) => handleFromAmountChange(e.target.value)}
+                    placeholder="0.00"
+                  />
+                  <div className={styles.tokenRight}>
+                    <button className={styles.maxBtn} onClick={handleMaxClick}>
+                      MAX
+                    </button>
+                    <button className={styles.tokenBtn}>
+                      <span className={styles.tokenIcon}>{fromToken.logo}</span>
+                      <div className={styles.tokenMeta}>
+                        <div className={styles.tokenSymbol}>
+                          {fromToken.symbol}
+                        </div>
+                      </div>
+                      <Icon name="arrow-down" size="16" />
+                    </button>
+                  </div>
+                </div>
                 {fromAmount && (
-                  <span className={styles.usd}>
-                    ~${(parseFloat(fromAmount) * fromToken.price).toFixed(2)}
-                  </span>
+                  <div className={styles.tokenUsd}>
+                    ≈ ${(parseFloat(fromAmount) * fromToken.price).toFixed(2)}{" "}
+                    USD
+                  </div>
                 )}
               </div>
-            </div>
 
-            {/* Swap Direction Button */}
-            <div className={styles.switch}>
-              <button className={styles.switchBtn} onClick={handleSwapTokens}>
-                <Icon name="arrow-down" size="20" />
-              </button>
-            </div>
+              {/* Swap Button */}
+              <div className={styles.swapButtonWrapper}>
+                <button className={styles.swapIcon} onClick={handleSwapTokens}>
+                  <ArrowUpDown size={24} />
+                </button>
+              </div>
 
-            {/* To Token Input */}
-            <div className={styles.group}>
-              <div className={styles.label}>To (estimated)</div>
-              <div className={styles.inputBox}>
-                <input
-                  type="number"
-                  className={styles.input}
-                  value={toAmount}
-                  onChange={(e) => handleToAmountChange(e.target.value)}
-                  placeholder="0.0"
-                />
-                <div className={styles.tokenActions}>
-                  <button className={styles.tokenSelect}>
-                    <div className={styles.tokenLogo}>{toToken.logo}</div>
-                    <div className={styles.tokenInfo}>
-                      <div className={styles.tokenSymbol}>{toToken.symbol}</div>
+              {/* To Token */}
+              <div className={styles.tokenBox}>
+                <div className={styles.tokenHeader}>
+                  <span className={styles.tokenLabel}>To</span>
+                  <div className={styles.tokenBalance}>
+                    <Icon name="wallet" size="14" />
+                    Balance: {toToken.balance.toFixed(4)}
+                  </div>
+                </div>
+                <div className={styles.tokenInput}>
+                  <input
+                    type="number"
+                    className={styles.amountInput}
+                    value={toAmount}
+                    onChange={(e) => handleToAmountChange(e.target.value)}
+                    placeholder="0.00"
+                  />
+                  <div className={styles.tokenRight}>
+                    <button className={styles.tokenBtn}>
+                      <span className={styles.tokenIcon}>{toToken.logo}</span>
+                      <div className={styles.tokenMeta}>
+                        <div className={styles.tokenSymbol}>
+                          {toToken.symbol}
+                        </div>
+                      </div>
+                      <Icon name="arrow-down" size="16" />
+                    </button>
+                  </div>
+                </div>
+                {toAmount && (
+                  <div className={styles.tokenUsd}>
+                    ≈ ${(parseFloat(toAmount) * toToken.price).toFixed(2)} USD
+                  </div>
+                )}
+              </div>
+
+              {/* Price Info */}
+              {fromAmount && toAmount && (
+                <div className={styles.priceCard}>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>Rate</span>
+                    <div className={styles.priceValue}>
+                      <span>
+                        1 {fromToken.symbol} = {exchangeRate} {toToken.symbol}
+                      </span>
+                      <MdRefresh size={14} />
                     </div>
-                    <Icon name="arrow-down" size="16" />
+                  </div>
+                  <div className={styles.priceRow}>
+                    <span className={styles.priceLabel}>Price Impact</span>
+                    <span className={cn(styles.priceValue, styles.impact)}>
+                      <span
+                        className={cn(styles.impactBadge, {
+                          [styles.low]: priceImpact < 1,
+                          [styles.medium]: priceImpact >= 1 && priceImpact < 3,
+                          [styles.high]: priceImpact >= 3,
+                        })}
+                      >
+                        {priceImpact > 0.01 ? priceImpact.toFixed(2) : "<0.01"}%
+                      </span>
+                    </span>
+                  </div>
+                  <button
+                    className={styles.detailsToggle}
+                    onClick={() => setShowDetails(!showDetails)}
+                  >
+                    <span>{showDetails ? "Hide" : "Show"} details</span>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        transform: showDetails
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s ease",
+                      }}
+                    >
+                      <Icon name="arrow-down" size="16" />
+                    </span>
                   </button>
                 </div>
-              </div>
-              <div className={styles.balance}>
-                <span>Balance: {toToken.balance.toFixed(4)}</span>
-                {toAmount && (
-                  <span className={styles.usd}>
-                    ~${(parseFloat(toAmount) * toToken.price).toFixed(2)}
-                  </span>
-                )}
-              </div>
-            </div>
+              )}
 
-            {/* Price Info */}
-            {fromAmount && toAmount && (
-              <div className={styles.priceInfo}>
-                <div className={styles.priceRow}>
-                  <span className={styles.priceLabel}>Rate</span>
-                  <span className={styles.priceValue}>
-                    1 {fromToken.symbol} = {exchangeRate} {toToken.symbol}
-                  </span>
-                </div>
-                <div className={styles.priceRow}>
-                  <span className={styles.priceLabel}>Price Impact</span>
-                  <span className={cn(styles.priceValue, {
-                    [styles.warning]: priceImpact > 1,
-                    [styles.success]: priceImpact <= 1,
-                  })}>
-                    {priceImpact > 0.01 ? priceImpact.toFixed(2) : "<0.01"}%
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Swap Button */}
-            <button
-              className={cn("button", styles.button)}
-              disabled={!fromAmount || !toAmount}
-              onClick={handleSwap}
-            >
-              {!fromAmount || !toAmount ? "Enter an amount" : "Swap"}
-            </button>
-
-            {/* Transaction Details */}
-            {fromAmount && toAmount && (
-              <div className={styles.details}>
-                <div className={styles.detailsTitle}>Transaction Details</div>
-                <div className={styles.detailsList}>
+              {/* Expandable Details */}
+              {showDetails && fromAmount && toAmount && (
+                <div className={styles.details}>
                   <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Minimum Received</span>
-                    <span className={styles.detailValue}>
+                    <span>Minimum received</span>
+                    <span>
                       {minimumReceived} {toToken.symbol}
                     </span>
                   </div>
                   <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Liquidity Provider Fee</span>
-                    <span className={styles.detailValue}>
+                    <span>Liquidity Provider Fee</span>
+                    <span>
                       {liquidityProviderFee} {fromToken.symbol}
                     </span>
                   </div>
                   <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Route</span>
-                    <span className={styles.detailValue}>
+                    <span>Route</span>
+                    <span>
                       {fromToken.symbol} → {toToken.symbol}
                     </span>
                   </div>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Slippage Tolerance</span>
-                    <span className={styles.detailValue}>{slippage}%</span>
-                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+              )}
 
-        {/* Recent Activity */}
-        <div className={styles.activity}>
-          <div className={styles.activityHead}>
-            <div className={styles.subtitle}>Recent Activity</div>
-          </div>
-          <div className={styles.activityList}>
-            {[
-              { from: "100 XPR", to: "1.25 XUSDT", time: "2 mins ago", status: "success" },
-              { from: "50 XBTC", to: "1850 XUSDT", time: "15 mins ago", status: "success" },
-              { from: "200 XPR", to: "2.50 XUSDT", time: "1 hour ago", status: "success" },
-            ].map((tx, i) => (
-              <div className={styles.activityItem} key={i}>
-                <div className={styles.activityInfo}>
-                  <div className={styles.activityText}>
-                    {tx.from} → {tx.to}
-                  </div>
-                  <div className={styles.activityTime}>{tx.time}</div>
-                </div>
-                <div className={cn(styles.status, styles.statusSuccess)}>
-                  <Icon name="check" size="12" />
-                  Success
-                </div>
-              </div>
-            ))}
+              {/* Swap Action Button */}
+              <button
+                className={cn("button", styles.swapButton)}
+                disabled={!fromAmount || !toAmount}
+                onClick={handleSwap}
+              >
+                {!fromAmount || !toAmount ? "Enter amount" : "Swap Tokens"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
