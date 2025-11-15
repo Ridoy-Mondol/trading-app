@@ -2,7 +2,7 @@ import { useState } from "react";
 import styles from "./swap.module.sass";
 import cn from "classnames";
 import Icon from "../../components/Icon";
-import { Repeat, ArrowUpDown } from "lucide-react";
+import { Repeat, ArrowUpDown, Search, X } from "lucide-react";
 import { MdRefresh, MdSettings } from "react-icons/md";
 
 const SwapPage = () => {
@@ -27,6 +27,58 @@ const SwapPage = () => {
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [selectingToken, setSelectingToken] = useState("");
+  const [tokenSearch, setTokenSearch] = useState("");
+
+  // Mock token list
+  const tokenList = [
+    {
+      symbol: "XPR",
+      name: "Proton",
+      logo: "🟣",
+      balance: 1250.5,
+      price: 0.0125,
+    },
+    {
+      symbol: "XUSDT",
+      name: "Tether USD",
+      logo: "💵",
+      balance: 500.25,
+      price: 1.0,
+    },
+    {
+      symbol: "XUSDC",
+      name: "USD Coin",
+      logo: "💎",
+      balance: 750.0,
+      price: 1.0,
+    },
+    { symbol: "XBTC", name: "Bitcoin", logo: "₿", balance: 0.5, price: 45000 },
+    { symbol: "XETH", name: "Ethereum", logo: "Ξ", balance: 2.5, price: 3000 },
+    {
+      symbol: "XBNB",
+      name: "Binance Coin",
+      logo: "🟡",
+      balance: 10.0,
+      price: 320,
+    },
+    { symbol: "XSOL", name: "Solana", logo: "◎", balance: 25.0, price: 110 },
+    {
+      symbol: "XDOGE",
+      name: "Dogecoin",
+      logo: "🐕",
+      balance: 10000,
+      price: 0.08,
+    },
+  ];
+
+  // Filter tokens based on search
+  const filteredTokens = tokenList.filter(
+    (token) =>
+      token.symbol.toLowerCase().includes(tokenSearch.toLowerCase()) ||
+      token.name.toLowerCase().includes(tokenSearch.toLowerCase())
+  );
 
   // Mock price data
   const priceImpact = 0.02;
@@ -72,6 +124,39 @@ const SwapPage = () => {
 
   const handleSwap = () => {
     alert("Swap functionality will be implemented");
+  };
+
+  const openTokenModal = (type) => {
+    setSelectingToken(type);
+    setShowTokenModal(true);
+    setTokenSearch("");
+  };
+
+  const closeTokenModal = () => {
+    setShowTokenModal(false);
+    setSelectingToken("");
+    setTokenSearch("");
+  };
+
+  const selectToken = (token) => {
+    if (selectingToken === "from") {
+      setFromToken(token);
+      // Recalculate toAmount if fromAmount exists
+      if (fromAmount) {
+        const calculated =
+          (parseFloat(fromAmount) * token.price) / toToken.price;
+        setToAmount(calculated.toFixed(6));
+      }
+    } else {
+      setToToken(token);
+      // Recalculate toAmount if fromAmount exists
+      if (fromAmount) {
+        const calculated =
+          (parseFloat(fromAmount) * fromToken.price) / token.price;
+        setToAmount(calculated.toFixed(6));
+      }
+    }
+    closeTokenModal();
   };
 
   return (
@@ -159,7 +244,10 @@ const SwapPage = () => {
                     <button className={styles.maxBtn} onClick={handleMaxClick}>
                       MAX
                     </button>
-                    <button className={styles.tokenBtn}>
+                    <button
+                      className={styles.tokenBtn}
+                      onClick={() => openTokenModal("from")}
+                    >
                       <span className={styles.tokenIcon}>{fromToken.logo}</span>
                       <div className={styles.tokenMeta}>
                         <div className={styles.tokenSymbol}>
@@ -203,7 +291,10 @@ const SwapPage = () => {
                     placeholder="0.00"
                   />
                   <div className={styles.tokenRight}>
-                    <button className={styles.tokenBtn}>
+                    <button
+                      className={styles.tokenBtn}
+                      onClick={() => openTokenModal("to")}
+                    >
                       <span className={styles.tokenIcon}>{toToken.logo}</span>
                       <div className={styles.tokenMeta}>
                         <div className={styles.tokenSymbol}>
@@ -303,6 +394,74 @@ const SwapPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Token Selection Modal */}
+      {showTokenModal && (
+        <div className={styles.modalOverlay} onClick={closeTokenModal}>
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Select a token</h3>
+              <button className={styles.modalClose} onClick={closeTokenModal}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className={styles.searchBox}>
+              <Search size={20} className={styles.searchIcon} />
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Search name or symbol"
+                value={tokenSearch}
+                onChange={(e) => setTokenSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className={styles.tokenList}>
+              {filteredTokens.map((token) => (
+                <button
+                  key={token.symbol}
+                  className={cn(styles.tokenItem, {
+                    [styles.selected]:
+                      (selectingToken === "from" &&
+                        token.symbol === fromToken.symbol) ||
+                      (selectingToken === "to" &&
+                        token.symbol === toToken.symbol),
+                  })}
+                  onClick={() => selectToken(token)}
+                >
+                  <div className={styles.tokenItemLeft}>
+                    <span className={styles.tokenItemLogo}>{token.logo}</span>
+                    <div className={styles.tokenItemInfo}>
+                      <div className={styles.tokenItemSymbol}>
+                        {token.symbol}
+                      </div>
+                      <div className={styles.tokenItemName}>{token.name}</div>
+                    </div>
+                  </div>
+                  <div className={styles.tokenItemRight}>
+                    <div className={styles.tokenItemBalance}>
+                      {token.balance.toFixed(4)}
+                    </div>
+                    <div className={styles.tokenItemUsd}>
+                      ${(token.balance * token.price).toFixed(2)}
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {filteredTokens.length === 0 && (
+                <div className={styles.noResults}>
+                  <p>No tokens found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
