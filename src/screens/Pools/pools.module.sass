@@ -1,37 +1,15 @@
 @import ../../styles/helpers
 
 // ============================================================================
-// VARIABLES - Consistent with BitCloud theme
-// ============================================================================
-$primary-color: #7b68ee
-$primary-hover: #6a57dd
-$secondary-color: #4a5568
-$success-color: #48bb78
-$danger-color: #f56565
-$warning-color: #ed8936
-$bg-dark: #0f1419
-$bg-card: #1a1f2e
-$bg-hover: #252d3d
-$bg-input: #141821
-$text-primary: #ffffff
-$text-secondary: #a0aec0
-$text-muted: #718096
-$border-color: #2d3748
-$border-radius: 12px
-$border-radius-sm: 8px
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3)
-$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4)
-$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5)
-$transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
-
-// ============================================================================
 // POOLS PAGE
 // ============================================================================
 .poolsPage
     max-width: 1400px
     margin: 0 auto
     padding: 40px 24px
-    color: $text-primary
+    color: $n2
+    +dark
+        color: $n8
 
     // Stats Header
     .statsHeader
@@ -41,55 +19,69 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
         margin-bottom: 40px
 
         .statCard
-            background: linear-gradient(135deg, $bg-card 0%, darken($bg-card, 3%) 100%)
-            border: 1px solid $border-color
-            border-radius: $border-radius
+            background: $n8
+            border: 1px solid $n6
+            border-radius: 16px
             padding: 24px
-            transition: $transition
+            transition: all 0.3s ease
+            +dark
+                background: $n2
+                border-color: $n3
 
             &:hover
                 transform: translateY(-2px)
-                box-shadow: $shadow-md
-                border-color: lighten($border-color, 10%)
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08)
+                border-color: $n5
+                +dark
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4)
+                    border-color: $n4
 
             .statLabel
                 font-size: 13px
-                color: $text-secondary
+                color: $n4
                 text-transform: uppercase
                 letter-spacing: 0.5px
                 margin-bottom: 12px
+                +dark
+                    color: $n5
 
             .statValue
                 font-size: 32px
                 font-weight: 700
-                background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)
-                -webkit-background-clip: text
-                -webkit-text-fill-color: transparent
+                color: $n2
                 margin-bottom: 8px
+                +dark
+                    color: $n8
 
             .statChange
                 font-size: 14px
-                color: $text-muted
+                color: $n4
+                +dark
+                    color: $n5
 
                 &.positive
-                    color: $success-color
+                    color: $p4
 
                     &::before
                         content: '↑ '
 
                 &.negative
-                    color: $danger-color
+                    color: $p3
 
                     &::before
                         content: '↓ '
 
     // Pools Container
     .poolsContainer
-        background: $bg-card
-        border: 1px solid $border-color
-        border-radius: $border-radius
+        background: $n8
+        border: 1px solid $n6
+        border-radius: 16px
         padding: 32px
-        box-shadow: $shadow-sm
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04)
+        +dark
+            background: $n2
+            border-color: $n3
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2)
 
         .poolsHeader
             display: flex
@@ -101,9 +93,9 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                 font-size: 28px
                 font-weight: 700
                 margin: 0
-                background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 15%) 100%)
-                -webkit-background-clip: text
-                -webkit-text-fill-color: transparent
+                color: $n2
+                +dark
+                    color: $n8
 
         // Controls
         .controls
@@ -117,116 +109,129 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
             .tabs
                 display: flex
                 gap: 8px
-                background: $bg-input
+                background: $n7
                 padding: 4px
-                border-radius: $border-radius-sm
+                border-radius: 8px
+                +dark
+                    background: $n3
 
                 .tab
                     padding: 10px 20px
                     background: transparent
                     border: none
                     border-radius: 6px
-                    color: $text-secondary
+                    color: $n4
                     font-size: 14px
                     font-weight: 500
                     cursor: pointer
-                    transition: $transition
+                    transition: all 0.2s ease
+                    +dark
+                        color: $n5
 
                     &:hover
-                        color: $text-primary
-                        background: rgba(255, 255, 255, 0.05)
+                        color: $n2
+                        background: rgba($p1, 0.1)
+                        +dark
+                            color: $n8
 
                     &.active
-                        background: $primary-color
-                        color: white
-                        box-shadow: 0 2px 8px rgba($primary-color, 0.3)
+                        background: $p1
+                        color: $white
+                        box-shadow: 0 2px 8px rgba($p1, 0.3)
 
             .searchBox
                 position: relative
                 flex: 1
                 max-width: 400px
 
-                .searchIcon
-                    position: absolute
-                    left: 16px
-                    top: 50%
-                    transform: translateY(-50%)
-                    font-size: 18px
-                    opacity: 0.5
-
                 input
                     width: 100%
-                    padding: 12px 16px 12px 16px
-                    background: $bg-input
-                    border: 1px solid $border-color
-                    border-radius: $border-radius-sm
-                    color: $text-primary
+                    padding: 12px 16px
+                    background: $n7
+                    border: 1px solid $n6
+                    border-radius: 8px
+                    color: $n2
                     font-size: 14px
-                    transition: $transition
+                    transition: all 0.2s ease
+                    +dark
+                        background: $n3
+                        border-color: $n4
+                        color: $n8
 
                     &:focus
                         outline: none
-                        border-color: $primary-color
-                        box-shadow: 0 0 0 3px rgba($primary-color, 0.1)
+                        border-color: $p1
+                        box-shadow: 0 0 0 3px rgba($p1, 0.1)
 
                     &::placeholder
-                        color: $text-muted
+                        color: $n4
+                        +dark
+                            color: $n5
 
         // Table
         .tableContainer
             overflow-x: auto
-            border-radius: $border-radius-sm
-            border: 1px solid $border-color
+            border-radius: 12px
+            border: 1px solid $n6
+            +dark
+                border-color: $n3
 
             .poolsTable
                 width: 100%
                 border-collapse: collapse
-                background: $bg-input
+                background: $n8
+                +dark
+                    background: $n2
 
                 thead
-                    background: $bg-hover
+                    background: $n7
+                    +dark
+                        background: $n3
 
                     tr
-                        border-bottom: 2px solid $border-color
+                        border-bottom: 2px solid $n6
+                        +dark
+                            border-color: $n4
 
                     th
                         padding: 16px
                         text-align: left
                         font-size: 12px
                         font-weight: 600
-                        color: $text-secondary
+                        color: $n4
                         text-transform: uppercase
                         letter-spacing: 0.5px
                         white-space: nowrap
+                        +dark
+                            color: $n5
 
                         &.sortable
                             cursor: pointer
                             user-select: none
-                            transition: $transition
+                            transition: all 0.2s ease
 
                             &:hover
-                                color: $text-primary
-
-                        &:first-child
-                            border-radius: $border-radius-sm 0 0 0
-
-                        &:last-child
-                            border-radius: 0 $border-radius-sm 0 0
+                                color: $n2
+                                +dark
+                                    color: $n8
 
                 tbody
                     tr
-                        border-bottom: 1px solid $border-color
-                        transition: $transition
+                        border-bottom: 1px solid $n6
+                        transition: all 0.2s ease
                         cursor: pointer
+                        +dark
+                            border-color: $n3
 
                         &:hover
-                            background: $bg-hover
+                            background: $n7
+                            +dark
+                                background: $n3
 
                         &.myLiquidity
-                            background: rgba($primary-color, 0.05)
-                        
-                        &:hover
-                            background: $bg-hover
+                            background: rgba($p1, 0.05)
+                            +dark
+                                background: rgba($p1, 0.1)
 
                         &:last-child
                             border-bottom: none
@@ -234,11 +239,16 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     td
                         padding: 20px 16px
                         font-size: 14px
+                        color: $n2
+                        +dark
+                            color: $n8
 
                         &.poolRank
-                            color: $text-muted
+                            color: $n4
                             font-weight: 600
                             font-size: 16px
+                            +dark
+                                color: $n5
 
                         &.poolPair
                             .tokenLogos
@@ -250,12 +260,15 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                                     width: 32px
                                     height: 32px
                                     border-radius: 50%
-                                    background: $bg-card
-                                    border: 2px solid $bg-input
+                                    background: $n7
+                                    border: 2px solid $n8
                                     display: flex
                                     align-items: center
                                     justify-content: center
                                     font-size: 18px
+                                    +dark
+                                        background: $n3
+                                        border-color: $n2
 
                                     &:last-child
                                         margin-left: -12px
@@ -266,19 +279,25 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
                                 .pairSymbols
                                     font-weight: 600
-                                    color: $text-primary
+                                    color: $n2
                                     margin-bottom: 4px
+                                    +dark
+                                        color: $n8
 
                                 .pairNames
                                     font-size: 12px
-                                    color: $text-muted
+                                    color: $n4
+                                    +dark
+                                        color: $n5
 
                         &.poolTvl,
                         &.poolVolume,
                         &.poolFees
                             .value
                                 font-weight: 600
-                                color: $text-primary
+                                color: $n2
+                                +dark
+                                    color: $n8
 
                         &.poolApr
                             .aprBadge
@@ -288,16 +307,16 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                                 font-size: 13px
 
                                 &.high
-                                    background: rgba($success-color, 0.15)
-                                    color: $success-color
+                                    background: rgba($p4, 0.15)
+                                    color: $p4
 
                                 &.medium
-                                    background: rgba($warning-color, 0.15)
-                                    color: $warning-color
+                                    background: rgba($s3, 0.15)
+                                    color: darken($s3, 20%)
 
                                 &.low
-                                    background: rgba($text-muted, 0.15)
-                                    color: $text-muted
+                                    background: rgba($n4, 0.15)
+                                    color: $n4
 
                         &.poolLiquidity
                             .yourLiquidity
@@ -307,18 +326,20 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
                                 .value
                                     font-weight: 600
-                                    color: $primary-color
+                                    color: $p1
 
                                 .badge
                                     padding: 4px 8px
-                                    background: rgba($primary-color, 0.15)
-                                    color: $primary-color
+                                    background: rgba($p1, 0.15)
+                                    color: $p1
                                     border-radius: 4px
                                     font-size: 11px
                                     font-weight: 600
 
                             .noLiquidity
-                                color: $text-muted
+                                color: $n4
+                                +dark
+                                    color: $n5
 
                         &.poolActions
                             text-align: right
@@ -330,25 +351,25 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                                 font-size: 13px
                                 font-weight: 600
                                 cursor: pointer
-                                transition: $transition
+                                transition: all 0.2s ease
                                 margin-left: 8px
 
                                 &.btnAdd
-                                    background: $primary-color
-                                    color: white
+                                    background: $p1
+                                    color: $white
 
                                     &:hover
-                                        background: $primary-hover
+                                        background: darken($p1, 5%)
                                         transform: translateY(-1px)
-                                        box-shadow: 0 4px 12px rgba($primary-color, 0.3)
+                                        box-shadow: 0 4px 12px rgba($p1, 0.3)
 
                                 &.btnRemove
                                     background: transparent
-                                    color: $danger-color
-                                    border: 1px solid $danger-color
+                                    color: $p3
+                                    border: 1px solid $p3
 
                                     &:hover
-                                        background: rgba($danger-color, 0.1)
+                                        background: rgba($p3, 0.1)
 
         // Empty State
         .emptyState
@@ -362,30 +383,59 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
             h3
                 font-size: 20px
-                color: $text-primary
+                color: $n2
                 margin-bottom: 8px
+                +dark
+                    color: $n8
 
             p
-                color: $text-muted
+                color: $n4
                 font-size: 14px
+                +dark
+                    color: $n5
+
+    // Loading State
+    .loading
+        display: flex
+        flex-direction: column
+        align-items: center
+        justify-content: center
+        padding: 80px 20px
+
+        .spinner
+            font-size: 48px
+            margin-bottom: 16px
+            animation: spin 1s linear infinite
+
+        p
+            color: $n4
+            font-size: 16px
+            +dark
+                color: $n5
+
+        @keyframes spin
+            from
+                transform: rotate(0deg)
+            to
+                transform: rotate(360deg)
 
 // ============================================================================
 // BUTTONS
 // ============================================================================
 .btnPrimary
     padding: 12px 24px
-    background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 5%) 100%)
-    color: white
+    background: linear-gradient(135deg, $p1 0%, $p2 100%)
+    color: $white
     border: none
-    border-radius: $border-radius-sm
+    border-radius: 12px
     font-size: 14px
     font-weight: 600
     cursor: pointer
     display: inline-flex
     align-items: center
     gap: 8px
-    transition: $transition
-    box-shadow: 0 4px 12px rgba($primary-color, 0.2)
+    transition: all 0.2s ease
+    box-shadow: 0 4px 12px rgba($p1, 0.2)
 
     .icon
         font-size: 18px
@@ -393,7 +443,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
     &:hover
         transform: translateY(-2px)
-        box-shadow: 0 6px 20px rgba($primary-color, 0.4)
+        box-shadow: 0 6px 20px rgba($p1, 0.4)
 
     &:active
         transform: translateY(0)
@@ -405,18 +455,25 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
 .btnSecondary
     padding: 12px 24px
-    background: $bg-hover
-    color: $text-primary
-    border: 1px solid $border-color
-    border-radius: $border-radius-sm
+    background: $n7
+    color: $n2
+    border: 1px solid $n6
+    border-radius: 12px
     font-size: 14px
     font-weight: 600
     cursor: pointer
-    transition: $transition
+    transition: all 0.2s ease
+    +dark
+        background: $n3
+        color: $n8
+        border-color: $n4
 
     &:hover
-        background: lighten($bg-hover, 5%)
-        border-color: lighten($border-color, 10%)
+        background: $n6
+        border-color: $n5
+        +dark
+            background: $n4
+            border-color: $n5
 
 // ============================================================================
 // MODAL
@@ -427,7 +484,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
     left: 0
     right: 0
     bottom: 0
-    background: rgba(0, 0, 0, 0.8)
+    background: rgba(0, 0, 0, 0.7)
     backdrop-filter: blur(8px)
     display: flex
     align-items: center
@@ -435,6 +492,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
     z-index: 1000
     padding: 20px
     animation: fadeIn 0.2s ease
+    +dark
+        background: rgba(0, 0, 0, 0.85)
 
     @keyframes fadeIn
         from
@@ -443,15 +502,19 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
             opacity: 1
 
     .modal
-        background: $bg-card
-        border: 1px solid $border-color
-        border-radius: $border-radius
+        background: $n8
+        border: 1px solid $n6
+        border-radius: 16px
         width: 100%
         max-width: 520px
         max-height: 90vh
         overflow-y: auto
-        box-shadow: $shadow-lg
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15)
         animation: slideUp 0.3s ease
+        +dark
+            background: $n2
+            border-color: $n3
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6)
 
         @keyframes slideUp
             from
@@ -463,46 +526,59 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
         .modalHeader
             padding: 24px
-            border-bottom: 1px solid $border-color
+            border-bottom: 1px solid $n6
             display: flex
             justify-content: space-between
             align-items: center
+            +dark
+                border-color: $n3
 
             h2
                 font-size: 20px
                 font-weight: 700
                 margin: 0
+                color: $n2
+                +dark
+                    color: $n8
 
             .closeBtn
                 width: 32px
                 height: 32px
                 border-radius: 50%
-                background: $bg-hover
+                background: $n7
                 border: none
-                color: $text-secondary
+                color: $n4
                 font-size: 24px
                 cursor: pointer
                 display: flex
                 align-items: center
                 justify-content: center
-                transition: $transition
+                transition: all 0.2s ease
+                +dark
+                    background: $n3
+                    color: $n5
 
                 &:hover
-                    background: lighten($bg-hover, 5%)
-                    color: $text-primary
+                    background: $n6
+                    color: $n2
+                    +dark
+                        background: $n4
+                        color: $n8
 
         .modalBody
             padding: 24px
 
             .poolInfoBanner
-                background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($primary-color, 0.05) 100%)
-                border: 1px solid rgba($primary-color, 0.2)
-                border-radius: $border-radius-sm
+                background: linear-gradient(135deg, rgba($p1, 0.1) 0%, rgba($p2, 0.05) 100%)
+                border: 1px solid rgba($p1, 0.2)
+                border-radius: 12px
                 padding: 16px
                 margin-bottom: 24px
                 display: flex
                 justify-content: space-between
                 align-items: center
+                +dark
+                    background: linear-gradient(135deg, rgba($p1, 0.15) 0%, rgba($p2, 0.1) 100%)
 
                 .poolPairLarge
                     display: flex
@@ -513,12 +589,14 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                         width: 40px
                         height: 40px
                         border-radius: 50%
-                        background: $bg-card
-                        border: 2px solid $primary-color
+                        background: $n7
+                        border: 2px solid $p1
                         display: flex
                         align-items: center
                         justify-content: center
                         font-size: 24px
+                        +dark
+                            background: $n3
 
                         &:nth-child(2)
                             margin-left: -16px
@@ -526,7 +604,9 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     .pairText
                         font-size: 18px
                         font-weight: 700
-                        color: $text-primary
+                        color: $n2
+                        +dark
+                            color: $n8
 
                 .poolStatsInline
                     display: flex
@@ -535,15 +615,19 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     .statInline
                         .label
                             font-size: 12px
-                            color: $text-muted
+                            color: $n4
                             margin-right: 4px
+                            +dark
+                                color: $n5
 
                         .value
                             font-weight: 600
-                            color: $text-primary
+                            color: $n2
+                            +dark
+                                color: $n8
 
                             &.apr
-                                color: $success-color
+                                color: $p4
 
             .inputGroup
                 position: relative
@@ -558,37 +642,48 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     label
                         font-size: 14px
                         font-weight: 600
-                        color: $text-secondary
+                        color: $n4
+                        +dark
+                            color: $n5
 
                     .balance
                         font-size: 12px
-                        color: $text-muted
+                        color: $n4
+                        +dark
+                            color: $n5
 
                 .inputWrapper
                     position: relative
                     display: flex
                     align-items: center
-                    background: $bg-input
-                    border: 1px solid $border-color
-                    border-radius: $border-radius-sm
+                    background: $n7
+                    border: 1px solid $n6
+                    border-radius: 12px
                     padding: 16px
-                    transition: $transition
+                    transition: all 0.2s ease
+                    +dark
+                        background: $n3
+                        border-color: $n4
 
                     &:focus-within
-                        border-color: $primary-color
-                        box-shadow: 0 0 0 3px rgba($primary-color, 0.1)
+                        border-color: $p1
+                        box-shadow: 0 0 0 3px rgba($p1, 0.1)
 
                     input
                         flex: 1
                         background: transparent
                         border: none
-                        color: $text-primary
+                        color: $n2
                         font-size: 20px
                         font-weight: 600
                         outline: none
+                        +dark
+                            color: $n8
 
                         &::placeholder
-                            color: $text-muted
+                            color: $n4
+                            +dark
+                                color: $n5
 
                         &::-webkit-inner-spin-button,
                         &::-webkit-outer-spin-button
@@ -600,13 +695,17 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                         align-items: center
                         gap: 8px
                         padding: 8px 12px
-                        background: $bg-hover
+                        background: $n8
                         border-radius: 8px
                         cursor: pointer
-                        transition: $transition
+                        transition: all 0.2s ease
+                        +dark
+                            background: $n2
 
                         &:hover
-                            background: lighten($bg-hover, 5%)
+                            background: $n6
+                            +dark
+                                background: $n4
 
                         .tokenLogo
                             width: 24px
@@ -619,7 +718,9 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 
                         .tokenSymbol
                             font-weight: 600
-                            color: $text-primary
+                            color: $n2
+                            +dark
+                                color: $n8
 
                 .maxBtn
                     position: absolute
@@ -627,17 +728,17 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     top: 50%
                     transform: translateY(-50%)
                     padding: 6px 12px
-                    background: rgba($primary-color, 0.15)
-                    color: $primary-color
+                    background: rgba($p1, 0.15)
+                    color: $p1
                     border: none
                     border-radius: 6px
                     font-size: 12px
                     font-weight: 700
                     cursor: pointer
-                    transition: $transition
+                    transition: all 0.2s ease
 
                     &:hover
-                        background: rgba($primary-color, 0.25)
+                        background: rgba($p1, 0.25)
 
             .inputDivider
                 display: flex
@@ -648,21 +749,28 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     width: 36px
                     height: 36px
                     border-radius: 50%
-                    background: $bg-hover
-                    border: 2px solid $border-color
+                    background: $n7
+                    border: 2px solid $n6
                     display: flex
                     align-items: center
                     justify-content: center
                     font-size: 20px
                     font-weight: 700
-                    color: $text-secondary
+                    color: $n4
+                    +dark
+                        background: $n3
+                        border-color: $n4
+                        color: $n5
 
             .settingsSection
                 margin: 24px 0
                 padding: 16px
-                background: $bg-input
-                border: 1px solid $border-color
-                border-radius: $border-radius-sm
+                background: $n7
+                border: 1px solid $n6
+                border-radius: 12px
+                +dark
+                    background: $n3
+                    border-color: $n4
 
                 .settingHeader
                     display: flex
@@ -671,10 +779,12 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     margin-bottom: 12px
                     font-size: 14px
                     font-weight: 600
-                    color: $text-secondary
+                    color: $n4
+                    +dark
+                        color: $n5
 
                     .settingValue
-                        color: $primary-color
+                        color: $p1
 
                 .slippageOptions
                     display: flex
@@ -683,48 +793,63 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     .slippageBtn
                         flex: 1
                         padding: 10px
-                        background: $bg-hover
-                        border: 1px solid $border-color
+                        background: $n8
+                        border: 1px solid $n6
                         border-radius: 6px
-                        color: $text-secondary
+                        color: $n4
                         font-size: 13px
                         font-weight: 600
                         cursor: pointer
-                        transition: $transition
+                        transition: all 0.2s ease
+                        +dark
+                            background: $n2
+                            border-color: $n4
+                            color: $n5
 
                         &:hover
-                            border-color: $primary-color
-                            color: $text-primary
+                            border-color: $p1
+                            color: $n2
+                            +dark
+                                color: $n8
 
                         &.active
-                            background: $primary-color
-                            border-color: $primary-color
-                            color: white
+                            background: $p1
+                            border-color: $p1
+                            color: $white
 
                     .customSlippage
                         flex: 1
                         padding: 10px
-                        background: $bg-hover
-                        border: 1px solid $border-color
+                        background: $n8
+                        border: 1px solid $n6
                         border-radius: 6px
-                        color: $text-primary
+                        color: $n2
                         font-size: 13px
                         text-align: center
                         outline: none
-                        transition: $transition
+                        transition: all 0.2s ease
+                        +dark
+                            background: $n2
+                            border-color: $n4
+                            color: $n8
 
                         &:focus
-                            border-color: $primary-color
+                            border-color: $p1
 
                         &::placeholder
-                            color: $text-muted
+                            color: $n4
+                            +dark
+                                color: $n5
 
             .priceInfo
                 padding: 16px
-                background: $bg-input
-                border: 1px solid $border-color
-                border-radius: $border-radius-sm
+                background: $n7
+                border: 1px solid $n6
+                border-radius: 12px
                 margin: 16px 0
+                +dark
+                    background: $n3
+                    border-color: $n4
 
                 .infoRow
                     display: flex
@@ -734,14 +859,20 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                     font-size: 14px
 
                     &:not(:last-child)
-                        border-bottom: 1px solid $border-color
+                        border-bottom: 1px solid $n6
+                        +dark
+                            border-color: $n4
 
                     span:first-child
-                        color: $text-muted
+                        color: $n4
+                        +dark
+                            color: $n5
 
                     span:last-child
-                        color: $text-primary
+                        color: $n2
                         font-weight: 600
+                        +dark
+                            color: $n8
 
             .modalActions
                 display: flex
@@ -763,7 +894,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 // ============================================================================
 +t
     .poolsPage
-        .stats-header
+        .statsHeader
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))
 
         .poolsContainer
@@ -780,7 +911,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
             grid-template-columns: 1fr
 
             .statCard
-                .stat-value
+                .statValue
                     font-size: 24px
 
         .poolsContainer
@@ -804,9 +935,11 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                             flex-direction: column
                             padding: 16px
                             gap: 12px
-                            border: 1px solid $border-color
-                            border-radius: $border-radius-sm
+                            border: 1px solid $n6
+                            border-radius: 12px
                             margin-bottom: 12px
+                            +dark
+                                border-color: $n3
 
                             td
                                 padding: 0
@@ -814,12 +947,10 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
                                 justify-content: space-between
                                 align-items: center
 
-                                &.pool-actions
+                                &.poolActions
                                     justify-content: flex-end
 
     .modal
         max-width: 100% !important
         margin: 0 !important
-        border-radius: $border-radius $border-radius 0 0 !important
-  
-  
+        border-radius: 16px 16px 0 0 !important

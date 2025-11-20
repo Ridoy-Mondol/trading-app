@@ -875,7 +875,11 @@ const PoolsPage = () => {
                 <tr
                   key={pool.id}
                   className={activeTab === "my" ? styles.myLiquidity : ""}
-                  onClick={() => navigate("/swap")}
+                  onClick={() =>
+                    navigate(
+                      `/swap?from=${pool.token0.symbol}&to=${pool.token1.symbol}`
+                    )
+                  }
                 >
                   <td className={styles.poolRank}>{index + 1}</td>
                   <td className={styles.poolPair}>
