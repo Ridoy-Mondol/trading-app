@@ -12,6 +12,7 @@ import { MdRefresh, MdSettings } from "react-icons/md";
 const SwapPage = () => {
   const [pools, setPools] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const [userBalance, setUserBalance] = useState([]);
   const [fromToken, setFromToken] = useState(null);
   const [toToken, setToToken] = useState(null);
@@ -352,14 +353,51 @@ const SwapPage = () => {
     fetchPools();
   }, []);
 
+  // useEffect(() => {
+  //   // STOP default behavior when URL has from/to params
+  //   if (fromQuery || toQuery) return;
+
+  //   if (!enrichedTokenList.length || !pools.length) return;
+
+  //   // Avoid overriding already-set tokens
+  //   // if (fromToken?.balance && toToken?.balance) return;
+
+  //   if (initialized) return;
+
+  //   const firstPool = pools[0];
+
+  //   const token0 = enrichedTokenList.find(
+  //     (t) =>
+  //       t.symbol.split(",").pop().toUpperCase() ===
+  //       firstPool.token0.toUpperCase()
+  //   );
+  //   const token1 = enrichedTokenList.find(
+  //     (t) =>
+  //       t.symbol.split(",").pop().toUpperCase() ===
+  //       firstPool.token1.toUpperCase()
+  //   );
+
+  //   if (token0 && token1) {
+  //     setFromToken(token0);
+  //     setToToken(token1);
+  //     setInitialized(true);
+  //   }
+  // }, [enrichedTokenList, pools, fromQuery, toQuery, initialized]);
+
   useEffect(() => {
-    // STOP default behavior when URL has from/to params
+    // STOP if URL already has from/to params
     if (fromQuery || toQuery) return;
 
     if (!enrichedTokenList.length || !pools.length) return;
 
-    // Avoid overriding already-set tokens
-    if (fromToken?.balance && toToken?.balance) return;
+    // Wait until balances actually load
+    const anyBalanceLoaded = enrichedTokenList.some(
+      (t) => typeof t.balance === "number" && t.balance > 0
+    );
+
+    if (!anyBalanceLoaded) return;
+
+    if (initialized) return;
 
     const firstPool = pools[0];
 
@@ -368,6 +406,7 @@ const SwapPage = () => {
         t.symbol.split(",").pop().toUpperCase() ===
         firstPool.token0.toUpperCase()
     );
+
     const token1 = enrichedTokenList.find(
       (t) =>
         t.symbol.split(",").pop().toUpperCase() ===
@@ -377,8 +416,9 @@ const SwapPage = () => {
     if (token0 && token1) {
       setFromToken(token0);
       setToToken(token1);
+      setInitialized(true);
     }
-  }, [enrichedTokenList, pools, fromToken, toToken]);
+  }, [enrichedTokenList, pools, fromQuery, toQuery, initialized]);
 
   const handleFromAmountChange = (value) => {
     setFromAmount(value);
