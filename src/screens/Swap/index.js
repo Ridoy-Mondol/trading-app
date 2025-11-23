@@ -26,7 +26,7 @@ const SwapPage = () => {
   const [selectingToken, setSelectingToken] = useState("");
   const [tokenSearch, setTokenSearch] = useState("");
 
-  const { activeSession, walletConnected } = useWallet();
+  const { activeSession, walletConnected, connectWallet } = useWallet();
   const { data: allTokens = [], isLoading } = useTokens();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
 
@@ -76,13 +76,6 @@ const SwapPage = () => {
           (bal) => bal.symbol === token.symbol && bal.contract === token.account
         );
 
-        // Parse precision "8,XBTC" -> 8
-        let precision = 4;
-        const symbolParts = token.symbol.split(",");
-        if (symbolParts.length === 2) {
-          precision = parseInt(symbolParts[0]) || 4;
-        }
-
         return {
           symbol: token.symbol,
           name: token.metadata?.name || token.symbol,
@@ -90,7 +83,7 @@ const SwapPage = () => {
           balance: userBal?.amount || 0,
           price: token.price?.usd || 0,
           contract: token.account,
-          precision: precision,
+          precision: token?.supply?.precision || 4,
         };
       });
   }, [allTokens, userBalance, availablePoolTokens]);
@@ -156,12 +149,25 @@ const SwapPage = () => {
     if (!currentPool || !fromToken || !toToken) return null;
 
     const isToken0 = currentPool.token0.toUpperCase() === fromToken.symbol;
-    const reserveIn = parseFloat(
+
+    const reserveInRaw = parseFloat(
       isToken0 ? currentPool.reserve0 : currentPool.reserve1
     );
-    const reserveOut = parseFloat(
+    const reserveOutRaw = parseFloat(
       isToken0 ? currentPool.reserve1 : currentPool.reserve0
     );
+
+    const inputPrecision = getPoolTokenPrecision(
+      isToken0 ? currentPool.token0_symbol : currentPool.token1_symbol
+    );
+
+    const outputPrecision = getPoolTokenPrecision(
+      isToken0 ? currentPool.token1_symbol : currentPool.token0_symbol
+    );
+
+    const reserveIn = reserveInRaw / Math.pow(10, inputPrecision);
+
+    const reserveOut = reserveOutRaw / Math.pow(10, outputPrecision);
 
     // Mid price (without fees)
     const midPrice = reserveOut / reserveIn;
@@ -171,12 +177,8 @@ const SwapPage = () => {
       reserveIn,
       reserveOut,
       isToken0,
-      inputPrecision: getPoolTokenPrecision(
-        isToken0 ? currentPool.token0_symbol : currentPool.token1_symbol
-      ),
-      outputPrecision: getPoolTokenPrecision(
-        isToken0 ? currentPool.token1_symbol : currentPool.token0_symbol
-      ),
+      inputPrecision,
+      outputPrecision,
     };
   }, [currentPool, fromToken, toToken]);
 
@@ -188,9 +190,11 @@ const SwapPage = () => {
 
     // Constant product formula: (x + Δx * 0.997) * (y - Δy) = x * y
     // Δy = (Δx * 0.997 * y) / (x + Δx * 0.997)
-    const amountInWithFee = inputAmount * 997; // 0.3% fee
+    const amountInWithFee = inputAmount * 0.997;
+
     const numerator = amountInWithFee * reserveOut;
-    const denominator = reserveIn * 1000 + amountInWithFee;
+
+    const denominator = reserveIn + amountInWithFee;
 
     return numerator / denominator;
   };
@@ -203,8 +207,11 @@ const SwapPage = () => {
 
     // Reverse constant product formula
     // Δx = (x * Δy * 1000) / ((y - Δy) * 997)
-    const numerator = reserveIn * outputAmount * 1000;
-    const denominator = (reserveOut - outputAmount) * 997;
+    const numerator = outputAmount * reserveIn;
+
+    const denominator = (reserveOut - outputAmount) * 0.997;
+
+    if (denominator <= 0) return 0;
 
     return numerator / denominator;
   };
@@ -353,37 +360,6 @@ const SwapPage = () => {
     fetchPools();
   }, []);
 
-  // useEffect(() => {
-  //   // STOP default behavior when URL has from/to params
-  //   if (fromQuery || toQuery) return;
-
-  //   if (!enrichedTokenList.length || !pools.length) return;
-
-  //   // Avoid overriding already-set tokens
-  //   // if (fromToken?.balance && toToken?.balance) return;
-
-  //   if (initialized) return;
-
-  //   const firstPool = pools[0];
-
-  //   const token0 = enrichedTokenList.find(
-  //     (t) =>
-  //       t.symbol.split(",").pop().toUpperCase() ===
-  //       firstPool.token0.toUpperCase()
-  //   );
-  //   const token1 = enrichedTokenList.find(
-  //     (t) =>
-  //       t.symbol.split(",").pop().toUpperCase() ===
-  //       firstPool.token1.toUpperCase()
-  //   );
-
-  //   if (token0 && token1) {
-  //     setFromToken(token0);
-  //     setToToken(token1);
-  //     setInitialized(true);
-  //   }
-  // }, [enrichedTokenList, pools, fromQuery, toQuery, initialized]);
-
   useEffect(() => {
     // STOP if URL already has from/to params
     if (fromQuery || toQuery) return;
@@ -481,12 +457,81 @@ const SwapPage = () => {
     }
   };
 
-  const handleSwap = () => {
+  const formatAsset = (rawAmount, precision, symbol) => {
+    const value = parseFloat(rawAmount).toFixed(precision);
+    return `${value} ${symbol}`;
+  };
+
+  const handleSwap = async () => {
     if (!walletConnected) {
-      alert("Please connect your wallet first");
+      connectWallet();
       return;
     }
-    alert("Swap functionality will be implemented");
+
+    try {
+      const Asset = formatAsset(
+        fromAmount,
+        fromToken.precision,
+        fromToken.symbol
+      );
+
+      const memo = `${fromToken.symbol.toUpperCase()}>${toToken.symbol.toUpperCase()},${slippage}`;
+
+      console.log("Swap debug:", {
+        fromToken,
+        fromAmount,
+        Asset,
+        slippage,
+        memo,
+      });
+
+      const actions = [
+        // Action: Transfer token
+        {
+          account: fromToken.contract,
+          name: "transfer",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            from: activeSession.auth.actor.toString(),
+            to: "xprswap",
+            quantity: Asset,
+            memo,
+          },
+        },
+      ];
+
+      console.log("Transaction actions:", JSON.stringify(actions, null, 2));
+
+      const result = await activeSession.transact(
+        {
+          actions,
+        },
+        {
+          broadcast: true,
+        }
+      );
+
+      console.log("✅ Transaction successful!", result);
+
+      alert(
+        `✅ Swap executed successfully!\n\n` +
+          `From: ${fromAmount} ${fromToken.symbol}\n` +
+          `To: ${swapCalculations.estimatedOutput} ${toToken.symbol}\n` +
+          `Transaction ID: ${result.processed.id}`
+      );
+
+      setFromAmount("");
+      setToAmount("");
+      setLoading(false);
+    } catch (e) {
+      console.error("❌ Transaction failed:", e);
+      setLoading(false);
+    }
   };
 
   const openTokenModal = (type) => {
