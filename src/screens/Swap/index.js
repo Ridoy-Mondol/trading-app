@@ -556,22 +556,9 @@ const SwapPage = () => {
   if (isLoading || loading || !fromToken || !toToken) {
     return (
       <div className={styles.swap}>
-        <div className={styles.container}>
-          <div className={styles.content}>
-            <div className={styles.main}>
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.cardTitle}>
-                    <Repeat size={20} />
-                    <span>Exchange</span>
-                  </div>
-                </div>
-                <div style={{ textAlign: "center", padding: "40px" }}>
-                  Loading tokens...
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className={styles.loading}>
+          <div className={styles.spinner}>⏳</div>
+          <p>Loading...</p>
         </div>
       </div>
     );
