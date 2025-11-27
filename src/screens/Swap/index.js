@@ -811,7 +811,6 @@ const SwapPage = () => {
                           : parseFloat(swapCalculations.exchangeRate)}
                         {toToken.symbol}
                       </span>
-                      <MdRefresh size={14} />
                     </div>
                   </div>
                   {fromAmount && parseFloat(fromAmount) > 0 && (

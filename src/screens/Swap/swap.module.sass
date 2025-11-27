@@ -14,10 +14,22 @@
   justify-content: center
   padding: 80px 20px
 
+  p
+    color: $n4
+    font-size: 16px
+    +dark
+      color: $n5
+
 .spinner
   font-size: 48px
   margin-bottom: 16px
   animation: spin 1s linear infinite
+
+@keyframes spin
+  from
+    transform: rotate(0deg)
+  to
+    transform: rotate(360deg)
 
 .container
   max-width: 1200px
