@@ -442,14 +442,23 @@ const SwapPage = () => {
   };
 
   const handleSwapTokens = () => {
-    const tempToken = fromToken;
-    const tempAmount = fromAmount;
-
     setFromToken(toToken);
-    setToToken(tempToken);
+    setToToken(fromToken);
+
     setFromAmount(toAmount);
-    setToAmount(tempAmount);
+    setToAmount(fromAmount);
   };
+
+  useEffect(() => {
+    if (!fromAmount || !poolPriceRatio) return;
+
+    const inputAmount = parseFloat(fromAmount);
+    if (isNaN(inputAmount) || inputAmount <= 0) return;
+
+    const outputAmount = calculateSwapOutput(inputAmount, poolPriceRatio);
+
+    setToAmount(outputAmount.toFixed(poolPriceRatio.outputPrecision));
+  }, [fromAmount, fromToken, toToken, poolPriceRatio]);
 
   const handleMaxClick = () => {
     if (fromToken && fromToken.balance > 0) {
@@ -477,14 +486,6 @@ const SwapPage = () => {
 
       const memo = `${fromToken.symbol.toUpperCase()}>${toToken.symbol.toUpperCase()},${slippage}`;
 
-      console.log("Swap debug:", {
-        fromToken,
-        fromAmount,
-        Asset,
-        slippage,
-        memo,
-      });
-
       const actions = [
         // Action: Transfer token
         {
@@ -505,8 +506,6 @@ const SwapPage = () => {
         },
       ];
 
-      console.log("Transaction actions:", JSON.stringify(actions, null, 2));
-
       const result = await activeSession.transact(
         {
           actions,
@@ -515,8 +514,6 @@ const SwapPage = () => {
           broadcast: true,
         }
       );
-
-      console.log("✅ Transaction successful!", result);
 
       alert(
         `✅ Swap executed successfully!\n\n` +
@@ -549,29 +546,10 @@ const SwapPage = () => {
   const selectToken = (token) => {
     if (selectingToken === "from") {
       setFromToken(token);
-      // Recalculate output when token changes
-      if (fromAmount && poolPriceRatio) {
-        setTimeout(() => {
-          const outputAmount = calculateSwapOutput(
-            parseFloat(fromAmount),
-            poolPriceRatio
-          );
-          setToAmount(outputAmount.toFixed(poolPriceRatio.outputPrecision));
-        }, 10);
-      }
     } else {
       setToToken(token);
-      // Recalculate output when token changes
-      if (fromAmount && poolPriceRatio) {
-        setTimeout(() => {
-          const outputAmount = calculateSwapOutput(
-            parseFloat(fromAmount),
-            poolPriceRatio
-          );
-          setToAmount(outputAmount.toFixed(poolPriceRatio.outputPrecision));
-        }, 10);
-      }
     }
+
     closeTokenModal();
   };
 
@@ -755,6 +733,11 @@ const SwapPage = () => {
                     USD
                   </div>
                 )}
+                {fromAmount && parseFloat(fromAmount) > fromToken.balance && (
+                  <div className={styles.insufficientBalance}>
+                    ⚠️ Insufficient {fromToken.symbol} balance
+                  </div>
+                )}
               </div>
 
               {/* Swap Button */}
@@ -921,7 +904,12 @@ const SwapPage = () => {
               {/* Swap Action Button */}
               <button
                 className={cn("button", styles.swapButton)}
-                disabled={!fromAmount || !toAmount || !currentPool}
+                disabled={
+                  !fromAmount ||
+                  !toAmount ||
+                  !currentPool ||
+                  parseFloat(fromAmount) > fromToken.balance
+                }
                 onClick={handleSwap}
               >
                 {!walletConnected
@@ -930,6 +918,8 @@ const SwapPage = () => {
                   ? "Enter amount"
                   : !currentPool
                   ? "No liquidity pool"
+                  : parseFloat(fromAmount) > fromToken.balance
+                  ? `Insufficient ${fromToken.symbol} balance`
                   : "Swap Tokens"}
               </button>
             </div>
