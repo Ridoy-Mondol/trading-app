@@ -937,16 +937,21 @@ const PoolsPage = () => {
       <div className={styles.poolsContainer}>
         <div className={styles.poolsHeader}>
           <h1>Liquidity Pools</h1>
-          <button
-            className={styles.btnPrimary}
-            onClick={(e) => {
-              if (pools.length > 0) {
-                handleAddLiquidity(e, pools[0]);
-              }
-            }}
-          >
-            <span className={styles.icon}>+</span> Add Liquidity
-          </button>
+          <div className={styles.headerActions}>
+            <button className={styles.btnSecondary}>
+              <span className={styles.icon}>⚡</span> Create Pool
+            </button>
+            <button
+              className={styles.btnPrimary}
+              onClick={(e) => {
+                if (pools.length > 0) {
+                  handleAddLiquidity(e, pools[0]);
+                }
+              }}
+            >
+              <span className={styles.icon}>+</span> Add Liquidity
+            </button>
+          </div>
         </div>
 
         {/* Tabs and Search */}
