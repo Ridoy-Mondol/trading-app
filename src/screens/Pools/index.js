@@ -93,44 +93,156 @@ const PoolsPage = () => {
     const amount0 = reserve0 / Math.pow(10, token0Info.precision);
     const amount1 = reserve1 / Math.pow(10, token1Info.precision);
 
+    const price0 = Number(token0Info.price) || 0;
+    const price1 = Number(token1Info.price) || 0;
+
     // Calculate USD value
-    const value0 = amount0 * (token0Info.price || 0);
-    const value1 = amount1 * (token1Info.price || 0);
+    const value0 = amount0 * price0;
+    const value1 = amount1 * price1;
 
     return value0 + value1;
   };
 
-  // Calculate mock APR (in production, calculate from fees earned)
-  const calculateAPR = (pool, config) => {
-    if (!pool || !config || pool.tvl === 0) return 0;
+  const calculateAPR = (swaps, pool, poolWithMetrics, allTokens, config) => {
+    if (!pool || !poolWithMetrics || !config || pool.tvl === 0) {
+      console.log("Invalid pool data or zero TVL");
+      return 0;
+    }
 
-    const estimatedDailyVolume = pool.tvl * 0.1;
+    // ✅ Calculate REAL 24h fees using actual swap data
+    const fees24h = calculate24hFees(swaps, pool, allTokens, 24);
 
-    const swapFeePercentage = config.swap_fee / 10000;
-    const dailyFees = estimatedDailyVolume * swapFeePercentage;
+    if (fees24h === 0) {
+      return 0;
+    }
 
-    const annualFees = dailyFees * 365;
+    // ✅ Annualize the real fees (daily fees × 365)
+    const annualizedFees = fees24h * 365;
 
-    const apr = (annualFees / pool.tvl) * 10;
+    // ✅ Calculate APR: (Annual Fees / TVL) × 100
+    const apr = (annualizedFees / poolWithMetrics.tvl) * 100;
 
     return apr;
   };
 
   // Calculate 24h volume (estimated from liquidity and activity)
-  const calculate24hVolume = (tvl) => {
-    return tvl * 0.1;
+  const calculateVolume = (swaps, pool, allTokens, hours = 24) => {
+    if (!Array.isArray(swaps) || swaps.length === 0) {
+      return 0;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const timeWindow = now - hours * 60 * 60;
+
+    let totalVolumeUSD = 0;
+
+    console.log(`Calculating volume for last ${hours} hours`);
+    console.log(`Current time (seconds): ${now}`);
+    console.log(`Time window cutoff: ${timeWindow}`);
+
+    swaps.forEach((swap) => {
+      console.log(`Processing swap #${swap.id}:`, {
+        timestamp: swap.timestamp,
+        token_in: swap.token_in,
+        amount_in: swap.amount_in,
+        isInWindow: swap.timestamp >= timeWindow,
+      });
+
+      // ✅ Check timestamp (in seconds)
+      if (swap.timestamp < timeWindow) {
+        console.log(`Swap #${swap.id} is too old, skipping`);
+        return;
+      }
+
+      // ✅ Determine which token is being swapped in
+      const tokenInSymbol = swap.token_in.toUpperCase();
+      const isToken0In = tokenInSymbol === pool.token0.toUpperCase();
+
+      // ✅ Get contract address from pool
+      const tokenInContract = isToken0In
+        ? pool.token0_contract
+        : pool.token1_contract;
+      const tokenSymbol = isToken0In ? pool.token0_symbol : pool.token1_symbol;
+
+      // ✅ Find token price data
+      const tokenInData = allTokens.find(
+        (t) => t.symbol === tokenInSymbol && t.account === tokenInContract
+      );
+
+      if (!tokenInData) {
+        console.log(`Token not found: ${tokenInSymbol} (${tokenInContract})`);
+        return;
+      }
+
+      if (!tokenInData.price?.usd) {
+        console.log(`No USD price for ${tokenInSymbol}`);
+        return;
+      }
+
+      // ✅ Parse precision from "6,XUSDT" format
+      const precision = parseInt(tokenSymbol.split(",")[0]) || 4;
+
+      // Convert raw amount to decimal
+      const amountInDecimal =
+        parseFloat(swap.amount_in) / Math.pow(10, precision);
+
+      // Calculate USD value
+      const volumeUSD = amountInDecimal * tokenInData.price.usd;
+
+      console.log(
+        `Swap #${swap.id}: ${amountInDecimal.toFixed(6)} ${tokenInSymbol} @ $${
+          tokenInData.price.usd
+        } = $${volumeUSD.toFixed(2)}`
+      );
+
+      totalVolumeUSD += volumeUSD;
+    });
+
+    console.log(`Total volume: $${totalVolumeUSD.toFixed(2)}`);
+    return totalVolumeUSD;
   };
 
-  const calculate7dVolume = (tvl) => {
-    // 7 days of volume
-    return tvl * 0.1 * 7;
-  };
+  const calculate24hFees = (swaps, pool, allTokens, hours = 24) => {
+    if (!Array.isArray(swaps) || swaps.length === 0) {
+      return 0;
+    }
 
-  // Calculate 24h fees
-  const calculate24hFees = (volume24h, config) => {
-    if (!config) return 0;
-    const swapFeePercentage = config.swap_fee / 10000;
-    return volume24h * swapFeePercentage;
+    const now = Math.floor(Date.now() / 1000);
+    const timeWindow = now - hours * 60 * 60;
+
+    let totalFeesUSD = 0;
+
+    swaps.forEach((swap) => {
+      if (swap.timestamp < timeWindow) return;
+
+      // Get token info from pool
+      const tokenInSymbol = swap.token_in.toUpperCase();
+      const isToken0In = tokenInSymbol === pool.token0.toUpperCase();
+      const tokenInContract = isToken0In
+        ? pool.token0_contract
+        : pool.token1_contract;
+      const tokenSymbol = isToken0In ? pool.token0_symbol : pool.token1_symbol;
+
+      // Find token price
+      const tokenInData = allTokens.find(
+        (t) => t.symbol === tokenInSymbol && t.account === tokenInContract
+      );
+
+      if (!tokenInData || !tokenInData.price?.usd) return;
+
+      // Parse precision
+      const precision = parseInt(tokenSymbol.split(",")[0]) || 4;
+
+      // Convert fee to decimal
+      const feeDecimal = parseFloat(swap.fee_paid) / Math.pow(10, precision);
+
+      // Calculate USD value
+      const feeUSD = feeDecimal * tokenInData.price.usd;
+
+      totalFeesUSD += feeUSD;
+    });
+
+    return totalFeesUSD;
   };
 
   // Fetch config from blockchain
@@ -259,8 +371,16 @@ const PoolsPage = () => {
         limit: 100,
       });
 
+      // Fetch swaps for all pools in parallel
+      const poolsWithSwaps = await Promise.all(
+        result.rows.map(async (pool) => {
+          const swaps = await fetchPoolSwaps(pool.id);
+          return { pool, swaps };
+        })
+      );
+
       // Transform blockchain data to UI format
-      const transformedPools = result.rows.map((pool) => {
+      const transformedPools = poolsWithSwaps.map(({ pool, swaps }) => {
         const token0Info = getTokenInfo(pool.token0, pool.token0_symbol);
         const token1Info = getTokenInfo(pool.token1, pool.token1_symbol);
 
@@ -280,9 +400,9 @@ const PoolsPage = () => {
           token1Info
         );
 
-        const volume24h = calculate24hVolume(tvl);
-        const volume7d = calculate7dVolume(tvl);
-        const fees24h = calculate24hFees(volume24h, config);
+        const volume24h = calculateVolume(swaps, pool, allTokens, 24);
+        const volume7d = calculateVolume(swaps, pool, allTokens, 168);
+        const fees24h = calculate24hFees(swaps, pool, allTokens, 24);
 
         const userPosition = userLiquidity.find(
           (liq) => liq.pool_id === pool.id
@@ -306,8 +426,8 @@ const PoolsPage = () => {
           token1_symbol: pool.token1_symbol,
           lp_supply: pool.lp_supply,
           tvl: tvl,
-          volume24h: volume24h, // Mock: 10% of TVL
-          volume7d: volume7d, // Mock: 70% of TVL
+          volume24h: volume24h,
+          volume7d: volume7d,
           fees24h: fees24h,
           yourLiquidity: yourLiquidityUSD,
           userPosition: userPosition,
@@ -315,17 +435,44 @@ const PoolsPage = () => {
           created_at: pool.created_at,
         };
 
-        poolWithMetrics.apr = calculateAPR(poolWithMetrics, config);
+        poolWithMetrics.apr = calculateAPR(
+          swaps,
+          pool,
+          poolWithMetrics,
+          allTokens,
+          config
+        );
 
         return poolWithMetrics;
       });
 
       setPools(transformedPools);
-      console.log("Transformed pools:", transformedPools);
     } catch (error) {
       console.error("Failed to fetch pools:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch swaps for a specific pool
+  const fetchPoolSwaps = async (poolId) => {
+    try {
+      const result = await rpc.get_table_rows({
+        json: true,
+        code: "xprswap",
+        scope: "xprswap",
+        table: "swaps",
+        index_position: 2, // bypool
+        key_type: "i64",
+        lower_bound: poolId,
+        upper_bound: poolId,
+        limit: 1000,
+      });
+
+      return Array.isArray(result.rows) ? result.rows : [];
+    } catch (error) {
+      console.error(`Failed to fetch swaps for pool ${poolId}:`, error);
+      return [];
     }
   };
 
@@ -357,7 +504,7 @@ const PoolsPage = () => {
     if (!value) return "$0.00";
     if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
     if (value >= 1000) return `$${(value / 1000).toFixed(2)}K`;
-    return `$${value.toFixed(2)}`;
+    return `$${value.toFixed(4)}`;
   };
 
   const filteredPools = pools.filter((pool) => {
@@ -688,9 +835,6 @@ const PoolsPage = () => {
         },
       ];
 
-      console.log("Executing liquidity add transaction...");
-      console.log("Transaction actions:", JSON.stringify(actions, null, 2));
-
       const result = await activeSession.transact(
         {
           actions,
@@ -699,8 +843,6 @@ const PoolsPage = () => {
           broadcast: true,
         }
       );
-
-      console.log("✅ Transaction successful!", result);
 
       alert(
         `✅ Liquidity added successfully!\n\nTransaction ID: ${result.processed.id}`
@@ -934,7 +1076,7 @@ const PoolsPage = () => {
                         { [styles.low]: pool.apr <= 20 }
                       )}
                     >
-                      {pool.apr.toFixed(1)}%
+                      {pool.apr.toFixed(2)}%
                     </span>
                   </td>
                   <td className={styles.poolLiquidity}>
