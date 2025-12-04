@@ -1,0 +1,449 @@
+@import ../../styles/helpers
+
+// ============================================
+// TOKEN SELECTION MODAL (Layer 2 - z-index: 1100)
+// ============================================
+
+.tokenModalOverlay
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background: rgba(0, 0, 0, 0.75)
+  display: flex
+  align-items: center
+  justify-content: center
+  z-index: 1100
+  backdrop-filter: blur(12px)
+  animation: fadeIn 0.2s ease
+  +m
+    padding: 16px
+
+.tokenModalContent
+  width: 90%
+  max-width: 500px
+  max-height: 90vh
+  background: $n8
+  border-radius: 24px
+  border: 1px solid $n6
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4), 0 0 1px rgba($p1, 0.4)
+  display: flex
+  flex-direction: column
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)
+  overflow: hidden
+  +dark
+    background: $n2
+    border-color: $n3
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9), 0 0 1px rgba($p1, 0.6)
+  +m
+    max-width: 100%
+    max-height: 85vh
+    border-radius: 20px
+  +a
+    border-radius: 16px
+
+// ============================================
+// HEADER
+// ============================================
+
+.modalHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 28px 32px
+  border-bottom: 1px solid $n6
+  background: linear-gradient(180deg, rgba($p1, 0.03) 0%, transparent 100%)
+  +dark
+    border-color: $n4
+    background: linear-gradient(180deg, rgba($p1, 0.06) 0%, transparent 100%)
+  +m
+    padding: 24px 20px
+  +a
+    padding: 20px 16px
+
+.modalTitle
+  +body-bold-1
+  color: $n2
+  margin: 0
+  +dark
+    color: $n8
+  +m
+    font-size: 20px
+    line-height: 1.3
+  +a
+    font-size: 18px
+
+.modalClose
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 40px
+  height: 40px
+  background: $n7
+  border: none
+  border-radius: 12px
+  cursor: pointer
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1)
+  flex-shrink: 0
+  +dark
+    background: $n3
+  +a
+    width: 36px
+    height: 36px
+  svg
+    stroke: $n4
+    transition: stroke .2s
+    +dark
+      stroke: $n5
+    +a
+      width: 20px
+      height: 20px
+  &:hover
+    background: $n6
+    transform: rotate(90deg) scale(1.05)
+    +dark
+      background: $n4
+    svg
+      stroke: $p1
+
+// ============================================
+// SEARCHBOX
+// ============================================
+
+.searchBox
+  position: relative
+  padding: 20px 24px
+  border-bottom: 1px solid $n6
+  +dark
+    border-color: $n4
+  +m
+    padding: 16px 20px
+  +a
+    padding: 14px 16px
+
+.searchIcon
+  position: absolute
+  left: 44px
+  top: 50%
+  transform: translateY(-50%)
+  stroke: $n4
+  z-index: 20
+  transition: stroke .2s
+  +dark
+    stroke: $n5
+  pointer-events: none
+  +m
+    left: 36px
+  +a
+    left: 32px
+    width: 18px
+    height: 18px
+
+.searchInput
+  width: 100%
+  padding: 16px 20px 16px 48px
+  background: $n7
+  border: 2px solid transparent
+  border-radius: 16px
+  +body-2
+  color: $n2
+  outline: none
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1)
+  +dark
+    background: $n3
+    color: $n8
+  +m
+    padding: 14px 16px 14px 44px
+    border-radius: 14px
+    font-size: 15px
+  +a
+    padding: 12px 14px 12px 40px
+    border-radius: 12px
+    font-size: 14px
+  &:focus
+    border-color: $p1
+    background: $white
+    box-shadow: 0 0 0 4px rgba($p1, 0.1)
+    transform: translateY(-1px)
+    +dark
+      background: $n2
+    ~ .searchIcon
+      stroke: $p1
+  +placeholder
+    color: $n4
+    +dark
+      color: $n5
+
+.tokenList
+  flex: 1
+  overflow-y: auto
+  padding: 12px 16px
+  min-height: 0
+  +m
+    padding: 10px 12px
+  +a
+    padding: 8px 10px
+  &::-webkit-scrollbar
+    width: 10px
+    +a
+      width: 8px
+  &::-webkit-scrollbar-track
+    background: transparent
+    margin: 4px 0
+  &::-webkit-scrollbar-thumb
+    background: $n5
+    border-radius: 10px
+    border: 2px solid $n8
+    +dark
+      background: $n4
+      border-color: $n2
+    &:hover
+      background: $n4
+      +dark
+        background: $n5
+
+.tokenItem
+  display: flex
+  align-items: center
+  justify-content: space-between
+  width: 100%
+  padding: 16px 18px
+  background: transparent
+  border: 2px solid transparent
+  border-radius: 16px
+  cursor: pointer
+  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1)
+  margin-bottom: 6px
+  +m
+    padding: 14px 16px
+    border-radius: 14px
+    margin-bottom: 5px
+  +a
+    padding: 12px 14px
+    border-radius: 12px
+    margin-bottom: 4px
+  &:last-child
+    margin-bottom: 0
+  &:hover
+    background: $n7
+    border-color: rgba($p1, 0.15)
+    transform: translateX(6px)
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04)
+    +dark
+      background: $n3
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2)
+    +m
+      transform: translateX(4px)
+    +a
+      transform: translateX(3px)
+    .tokenItemLogo
+      transform: scale(1.08) rotate(5deg)
+
+.selected
+  background: linear-gradient(135deg, rgba($p1, 0.12) 0%, rgba($p2, 0.08) 100%)
+  border-color: $p1
+  box-shadow: 0 4px 16px rgba($p1, 0.15)
+  +dark
+    background: linear-gradient(135deg, rgba($p1, 0.15) 0%, rgba($p2, 0.12) 100%)
+  .tokenItemLogo
+    box-shadow: 0 4px 12px rgba($p1, 0.25)
+
+.tokenItemLeft
+  display: flex
+  align-items: center
+  gap: 14px
+  +a
+    gap: 12px
+
+.tokenItemLogo
+  font-size: 42px
+  line-height: 1
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 52px
+  height: 52px
+  background: linear-gradient(135deg, rgba($p1, 0.08) 0%, rgba($p2, 0.12) 100%)
+  border-radius: 50%
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1)
+  box-shadow: 0 2px 8px rgba($p1, 0.1)
+  flex-shrink: 0
+  +dark
+    background: linear-gradient(135deg, rgba($p1, 0.12) 0%, rgba($p2, 0.15) 100%)
+  +m
+    font-size: 38px
+    width: 48px
+    height: 48px
+  +a
+    font-size: 34px
+    width: 44px
+    height: 44px
+
+.tokenItemInfo
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 4px
+  +a
+    gap: 2px
+
+.tokenItemSymbol
+  +body-bold-2
+  color: $n2
+  +dark
+    color: $n8
+  +m
+    font-size: 15px
+  +a
+    font-size: 14px
+
+.tokenItemName
+  +caption-2
+  color: $n4
+  +dark
+    color: $n5
+  +a
+    font-size: 11px
+
+.tokenItemRight
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+  gap: 4px
+  +a
+    gap: 2px
+
+.tokenItemBalance
+  +body-bold-2
+  color: $n2
+  +dark
+    color: $n8
+  +m
+    font-size: 15px
+  +a
+    font-size: 14px
+
+.tokenItemUsd
+  +caption-2
+  color: $n4
+  background: rgba($p1, 0.06)
+  padding: 2px 8px
+  border-radius: 6px
+  +dark
+    color: $n5
+    background: rgba($p1, 0.1)
+  +a
+    font-size: 10px
+    padding: 2px 6px
+    border-radius: 4px
+
+// Loading indicator
+.loadingMore
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 10px
+  padding: 20px
+  color: $n4
+  +dark
+    color: $n5
+  +caption-1
+  .spinner
+    width: 16px
+    height: 16px
+    border: 2px solid $n6
+    border-top-color: $p1
+    border-radius: 50%
+    animation: spin 0.8s linear infinite
+    +dark
+      border-color: $n4
+
+.loadMoreTrigger
+  height: 20px
+  width: 100%
+
+.endMessage
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 16px
+  color: $n5
+  +dark
+    color: $n4
+  +caption-2
+  border-top: 1px solid $n6
+  margin-top: 8px
+  +dark
+    border-color: $n4
+
+@keyframes spin
+  to
+    transform: rotate(360deg)
+
+.noResults
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  padding: 64px 24px
+  text-align: center
+  +m
+    padding: 48px 20px
+  +a
+    padding: 40px 16px
+  p
+    +body-2
+    color: $n4
+    margin-bottom: 8px
+    +dark
+      color: $n5
+    +a
+      font-size: 14px
+  &::before
+    content: "🔍"
+    font-size: 48px
+    margin-bottom: 16px
+    opacity: 0.5
+    +m
+      font-size: 42px
+      margin-bottom: 12px
+    +a
+      font-size: 36px
+      margin-bottom: 10px
+
+.noResultsHint
+  display: block
+  margin-top: 8px
+  +caption-2
+  color: $n5
+  +dark
+    color: $n4
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes fadeIn
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes slideUp
+  from
+    opacity: 0
+    transform: translateY(30px) scale(0.96)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@keyframes pulse
+  0%, 100%
+    transform: scale(1)
+  50%
+    transform: scale(1.05)
+
+@keyframes spin
+  to
+    transform: rotate(360deg)

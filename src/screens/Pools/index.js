@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./pools.module.sass";
+import CreatePoolModal from "../../components/TokenSelector"
 import cn from "classnames";
 import { JsonRpc } from "eosjs";
 import { useWallet } from "../../context/WalletContext";
@@ -25,6 +26,8 @@ const PoolsPage = () => {
   const [amount0, setAmount0] = useState("");
   const [amount1, setAmount1] = useState("");
   const [slippage, setSlippage] = useState(0.5);
+
+  const [showCreatePool, setShowCreatePool] = useState(false);
 
   const { activeSession, walletConnected, connectWallet } = useWallet();
   const { data: allTokens = [], isLoading } = useTokens();
@@ -105,27 +108,33 @@ const PoolsPage = () => {
 
   const calculateAPR = (swaps, pool, poolWithMetrics, allTokens, config) => {
     if (!pool || !poolWithMetrics || !config || pool.tvl === 0) {
-      console.log("Invalid pool data or zero TVL");
       return 0;
     }
 
-    // ✅ Calculate REAL 24h fees using actual swap data
-    const fees24h = calculate24hFees(swaps, pool, allTokens, 24);
+    // Utility: APR for any hour window
+    const calcAPR = (hours) => {
+      const fees = calculateFees(swaps, pool, allTokens, hours);
+      if (fees === 0) return 0;
 
-    if (fees24h === 0) {
-      return 0;
+      const days = hours / 24;
+      const dailyAvg = fees / days;
+      const annualized = dailyAvg * 365;
+
+      return (annualized / poolWithMetrics.tvl) * 100;
+    };
+
+    const apr7d = calcAPR(24 * 7);
+
+    if (apr7d > 0) {
+      return apr7d;
     }
 
-    // ✅ Annualize the real fees (daily fees × 365)
-    const annualizedFees = fees24h * 365;
+    // 2️⃣ Fallback → 30d APR if no 7d volume
+    const apr30d = calcAPR(24 * 30);
 
-    // ✅ Calculate APR: (Annual Fees / TVL) × 100
-    const apr = (annualizedFees / poolWithMetrics.tvl) * 100;
-
-    return apr;
+    return apr30d;
   };
 
-  // Calculate 24h volume (estimated from liquidity and activity)
   const calculateVolume = (swaps, pool, allTokens, hours = 24) => {
     if (!Array.isArray(swaps) || swaps.length === 0) {
       return 0;
@@ -202,7 +211,7 @@ const PoolsPage = () => {
     return totalVolumeUSD;
   };
 
-  const calculate24hFees = (swaps, pool, allTokens, hours = 24) => {
+  const calculateFees = (swaps, pool, allTokens, hours = 24) => {
     if (!Array.isArray(swaps) || swaps.length === 0) {
       return 0;
     }
@@ -402,7 +411,7 @@ const PoolsPage = () => {
 
         const volume24h = calculateVolume(swaps, pool, allTokens, 24);
         const volume7d = calculateVolume(swaps, pool, allTokens, 168);
-        const fees24h = calculate24hFees(swaps, pool, allTokens, 24);
+        const fees24h = calculateFees(swaps, pool, allTokens, 24);
 
         const userPosition = userLiquidity.find(
           (liq) => liq.pool_id === pool.id
@@ -862,6 +871,17 @@ const PoolsPage = () => {
     }
   };
 
+
+
+  const handleCreatePoolSuccess = async (token0, token1) => {
+    // Your pool creation logic
+    console.log('Creating pool for', token0.symbol, token1.symbol);
+    // ... blockchain transaction
+    await fetchPools(); // Refresh list
+  };
+
+
+
   if (loading) {
     return (
       <div className={styles.poolsPage}>
@@ -920,7 +940,9 @@ const PoolsPage = () => {
           <div className={styles.statValue}>
             {formatCurrency(totalVolume24h)}
           </div>
-          <div className={cn(styles.statChange)}>Est. based on TVL</div>
+          <div className={cn(styles.statChange)}>
+            From recent trading activity
+          </div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>Your Liquidity</div>
@@ -938,7 +960,7 @@ const PoolsPage = () => {
         <div className={styles.poolsHeader}>
           <h1>Liquidity Pools</h1>
           <div className={styles.headerActions}>
-            <button className={styles.btnSecondary}>
+            <button className={styles.btnSecondary} onClick={() => setShowCreatePool(true)}>
               <span className={styles.icon}>⚡</span> Create Pool
             </button>
             <button
@@ -1410,6 +1432,18 @@ const PoolsPage = () => {
           </div>
         </div>
       )}
+
+
+      <CreatePoolModal
+        show={showCreatePool}
+        onClose={() => setShowCreatePool(false)}
+        onSuccess={handleCreatePoolSuccess}
+        allTokens={allTokens}
+        existingPools={pools}
+        getUserTokenBalance={getUserTokenBalance}
+        renderTokenLogo={renderTokenLogo}
+      />
+
     </div>
   );
 };

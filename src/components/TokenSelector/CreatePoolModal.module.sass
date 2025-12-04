@@ -1,0 +1,574 @@
+@import ../../styles/helpers
+
+// ============================================
+// CREATE POOL MODAL (Base Layer - z-index: 1000)
+// ============================================
+
+.modalOverlay
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background: rgba(0, 0, 0, 0.6)
+  display: flex
+  align-items: center
+  justify-content: center
+  z-index: 1000
+  backdrop-filter: blur(8px)
+  animation: fadeIn 0.25s ease
+  +m
+    padding: 16px
+
+.createPoolModal
+  width: 90%
+  max-width: 560px
+  background: $n8
+  border-radius: 24px
+  border: 1px solid $n6
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3)
+  display: flex
+  flex-direction: column
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)
+  overflow: hidden
+  +dark
+    background: $n2
+    border-color: $n3
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8)
+  +m
+    max-width: 100%
+  +a
+    border-radius: 20px
+
+// ============================================
+// HEADER
+// ============================================
+
+.modalHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 28px 32px
+  border-bottom: 1px solid $n6
+  background: linear-gradient(180deg, rgba($p1, 0.03) 0%, transparent 100%)
+  +dark
+    border-color: $n4
+    background: linear-gradient(180deg, rgba($p1, 0.06) 0%, transparent 100%)
+  +m
+    padding: 24px 20px
+  +a
+    padding: 20px 16px
+
+.headerLeft
+  display: flex
+  align-items: center
+  gap: 16px
+  +a
+    gap: 12px
+
+.headerIcon
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 48px
+  height: 48px
+  background: linear-gradient(135deg, $p1 0%, $p2 100%)
+  border-radius: 14px
+  box-shadow: 0 4px 16px rgba($p1, 0.3)
+  +a
+    width: 40px
+    height: 40px
+    border-radius: 12px
+  svg
+    stroke: $white
+    +a
+      width: 20px
+      height: 20px
+
+.modalTitle
+  +body-bold-1
+  color: $n2
+  margin: 0
+  +dark
+    color: $n8
+  +m
+    font-size: 20px
+    line-height: 1.3
+  +a
+    font-size: 18px
+
+.modalSubtitle
+  +caption-1
+  color: $n4
+  margin: 4px 0 0
+  +dark
+    color: $n5
+  +m
+    display: none
+
+.modalClose
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 40px
+  height: 40px
+  background: $n7
+  border: none
+  border-radius: 12px
+  cursor: pointer
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1)
+  flex-shrink: 0
+  +dark
+    background: $n3
+  +a
+    width: 36px
+    height: 36px
+  svg
+    stroke: $n4
+    transition: stroke .2s
+    +dark
+      stroke: $n5
+    +a
+      width: 20px
+      height: 20px
+  &:hover
+    background: $n6
+    transform: rotate(90deg) scale(1.05)
+    +dark
+      background: $n4
+    svg
+      stroke: $p1
+
+// ============================================
+// BODY
+// ============================================
+
+.modalBody
+  padding: 32px
+  display: flex
+  flex-direction: column
+  gap: 16px
+  +m
+    padding: 24px 20px
+  +a
+    padding: 20px 16px
+    gap: 12px
+
+.tokenSection
+  display: flex
+  flex-direction: column
+  gap: 12px
+  +a
+    gap: 10px
+
+.tokenLabel
+  +caption-bold-1
+  color: $n3
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  +dark
+    color: $n6
+
+.tokenDropdown
+  width: 100%
+  padding: 20px 24px
+  background: $n7
+  border: 2px solid transparent
+  border-radius: 16px
+  cursor: pointer
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1)
+  min-height: 88px
+  display: flex
+  align-items: center
+  +dark
+    background: $n3
+  +m
+    padding: 16px 20px
+    min-height: 80px
+  +a
+    padding: 14px 16px
+    min-height: 72px
+    border-radius: 12px
+  &:hover
+    border-color: rgba($p1, 0.2)
+    background: $white
+    transform: translateY(-2px)
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06)
+    +dark
+      background: $n2
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3)
+  &.active
+    border-color: $p1
+    background: $white
+    box-shadow: 0 0 0 4px rgba($p1, 0.1), 0 4px 16px rgba(0, 0, 0, 0.08)
+    +dark
+      background: $n2
+  &.filled
+    background: linear-gradient(135deg, rgba($p1, 0.05) 0%, rgba($p2, 0.03) 100%)
+    border-color: rgba($p1, 0.15)
+    +dark
+      background: linear-gradient(135deg, rgba($p1, 0.08) 0%, rgba($p2, 0.05) 100%)
+    &:hover
+      border-color: $p1
+      box-shadow: 0 4px 20px rgba($p1, 0.15)
+
+// Placeholder State
+.placeholderContent
+  display: flex
+  align-items: center
+  gap: 14px
+  width: 100%
+  color: $n4
+  +dark
+    color: $n5
+  +a
+    gap: 10px
+
+.placeholderIcon
+  font-size: 36px
+  filter: grayscale(100%) opacity(0.5)
+  +m
+    font-size: 32px
+  +a
+    font-size: 28px
+
+.placeholderText
+  +body-1
+  flex: 1
+  text-align: left
+  +m
+    font-size: 16px
+  +a
+    font-size: 15px
+
+.chevron
+  stroke: $n4
+  transition: transform .2s
+  +dark
+    stroke: $n5
+  +a
+    width: 18px
+    height: 18px
+  .active &
+    transform: rotate(180deg)
+
+// Selected State
+.selectedToken
+  display: flex
+  align-items: center
+  gap: 16px
+  width: 100%
+  +a
+    gap: 12px
+
+.tokenLogo
+  font-size: 48px
+  line-height: 1
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 56px
+  height: 56px
+  background: linear-gradient(135deg, rgba($p1, 0.1) 0%, rgba($p2, 0.15) 100%)
+  border-radius: 50%
+  transition: all .25s
+  box-shadow: 0 2px 12px rgba($p1, 0.15)
+  flex-shrink: 0
+  +m
+    font-size: 42px
+    width: 52px
+    height: 52px
+  +a
+    font-size: 36px
+    width: 48px
+    height: 48px
+
+.tokenInfo
+  display: flex
+  flex-direction: column
+  gap: 4px
+  flex: 1
+  text-align: left
+  +a
+    gap: 2px
+
+.tokenSymbol
+  +body-bold-1
+  color: $n2
+  +dark
+    color: $n8
+  +m
+    font-size: 18px
+  +a
+    font-size: 16px
+
+.tokenName
+  +caption-1
+  color: $n4
+  +dark
+    color: $n5
+  +a
+    font-size: 12px
+
+.removeToken
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 32px
+  height: 32px
+  background: $n6
+  border: none
+  border-radius: 8px
+  cursor: pointer
+  transition: all .2s
+  flex-shrink: 0
+  +dark
+    background: $n4
+  +a
+    width: 28px
+    height: 28px
+  svg
+    stroke: $n4
+    +dark
+      stroke: $n6
+    +a
+      width: 14px
+      height: 14px
+  &:hover
+    background: rgba($p3, 0.1)
+    transform: scale(1.1)
+    svg
+      stroke: $p3
+
+// ============================================
+// DIVIDER
+// ============================================
+
+.divider
+  display: flex
+  align-items: center
+  justify-content: center
+  position: relative
+  padding: 8px 0
+  +a
+    padding: 6px 0
+  &::before
+    content: ''
+    position: absolute
+    left: 0
+    right: 0
+    height: 1px
+    background: linear-gradient(90deg, transparent 0%, $n5 50%, transparent 100%)
+    +dark
+      background: linear-gradient(90deg, transparent 0%, $n4 50%, transparent 100%)
+
+.plusIcon
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 40px
+  height: 40px
+  background: linear-gradient(135deg, $p1 0%, $p2 100%)
+  color: $white
+  font-size: 20px
+  font-weight: 700
+  border-radius: 12px
+  box-shadow: 0 4px 16px rgba($p1, 0.25)
+  z-index: 1
+  animation: pulse 2s ease-in-out infinite
+  +a
+    width: 36px
+    height: 36px
+    font-size: 18px
+    border-radius: 10px
+
+// ============================================
+// INFO & WARNING BOXES
+// ============================================
+
+.infoBox
+  background: linear-gradient(135deg, rgba($p1, 0.05) 0%, rgba($p2, 0.03) 100%)
+  border: 1px solid rgba($p1, 0.15)
+  border-radius: 16px
+  padding: 20px
+  display: flex
+  flex-direction: column
+  gap: 12px
+  +dark
+    background: linear-gradient(135deg, rgba($p1, 0.08) 0%, rgba($p2, 0.05) 100%)
+  +m
+    padding: 16px
+    border-radius: 14px
+  +a
+    padding: 14px
+    border-radius: 12px
+    gap: 10px
+
+.infoRow
+  display: flex
+  justify-content: space-between
+  align-items: center
+  +a
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+
+.infoLabel
+  +caption-1
+  color: $n4
+  +dark
+    color: $n5
+  +a
+    font-size: 12px
+
+.infoValue
+  +body-bold-2
+  color: $n2
+  +dark
+    color: $n8
+  +a
+    font-size: 15px
+
+.warningBox
+  display: flex
+  gap: 14px
+  padding: 18px
+  background: rgba($p3, 0.08)
+  border: 1px solid rgba($p3, 0.2)
+  border-radius: 14px
+  +dark
+    background: rgba($p3, 0.12)
+    border-color: rgba($p3, 0.3)
+  +m
+    padding: 16px
+    gap: 12px
+  +a
+    padding: 14px
+    gap: 10px
+    border-radius: 12px
+  svg
+    flex-shrink: 0
+    stroke: $p3
+    margin-top: 2px
+    +a
+      width: 18px
+      height: 18px
+
+.warningTitle
+  +caption-bold-1
+  color: $p3
+  margin-bottom: 4px
+  +a
+    font-size: 13px
+    margin-bottom: 2px
+
+.warningText
+  +caption-2
+  color: $n3
+  +dark
+    color: $n6
+  +a
+    font-size: 11px
+    line-height: 1.5
+
+// ============================================
+// FOOTER
+// ============================================
+
+.modalFooter
+  display: flex
+  gap: 12px
+  padding: 24px 32px
+  border-top: 1px solid $n6
+  background: $n7
+  +dark
+    border-color: $n4
+    background: $n3
+  +m
+    padding: 20px
+    gap: 10px
+  +a
+    padding: 16px
+    gap: 8px
+
+.btnSecondary
+  flex: 1
+  padding: 16px 24px
+  background: $white
+  color: $n3
+  border: 2px solid $n5
+  border-radius: 12px
+  font-size: 15px
+  font-weight: 600
+  cursor: pointer
+  transition: all .2s ease
+  +dark
+    background: $n2
+    color: $n6
+    border-color: $n4
+  +m
+    padding: 14px 20px
+    font-size: 14px
+  +a
+    padding: 12px 16px
+    font-size: 13px
+    border-radius: 10px
+  &:hover:not(:disabled)
+    border-color: $n4
+    transform: translateY(-2px)
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08)
+    +dark
+      border-color: $n5
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.btnPrimary
+  flex: 2
+  padding: 16px 32px
+  background: linear-gradient(135deg, $p1 0%, $p2 100%)
+  color: $white
+  border: none
+  border-radius: 12px
+  font-size: 15px
+  font-weight: 700
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 10px
+  transition: all .2s ease
+  box-shadow: 0 4px 16px rgba($p1, 0.3)
+  +m
+    padding: 14px 24px
+    font-size: 14px
+    gap: 8px
+  +a
+    padding: 12px 20px
+    font-size: 13px
+    gap: 6px
+    border-radius: 10px
+  svg
+    +a
+      width: 16px
+      height: 16px
+  &:hover:not(:disabled)
+    transform: translateY(-2px)
+    box-shadow: 0 6px 24px rgba($p1, 0.4)
+  &:active:not(:disabled)
+    transform: translateY(0)
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+    transform: none
+
+.spinner
+  width: 18px
+  height: 18px
+  border: 2px solid rgba($white, 0.3)
+  border-top-color: $white
+  border-radius: 50%
+  animation: spin 0.8s linear infinite
+  +a
+    width: 16px
+    height: 16px

@@ -947,9 +947,11 @@ const SwapPage = () => {
                     className={cn(styles.tokenItem, {
                       [styles.selected]:
                         (selectingToken === "from" &&
-                          token.symbol === fromToken.symbol) ||
+                          token.symbol === fromToken.symbol &&
+                          token.key === fromToken.key) ||
                         (selectingToken === "to" &&
-                          token.symbol === toToken.symbol),
+                          token.symbol === toToken.symbol &&
+                          token.key === toToken.key),
                     })}
                     onClick={() => selectToken(token)}
                   >
