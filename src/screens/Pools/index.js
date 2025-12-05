@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./pools.module.sass";
-import CreatePoolModal from "../../components/TokenSelector"
+import CreatePoolModal from "../../components/TokenSelector";
 import cn from "classnames";
 import { JsonRpc } from "eosjs";
 import { useWallet } from "../../context/WalletContext";
@@ -88,7 +88,7 @@ const PoolsPage = () => {
     };
   };
 
-  // Calculate TVL (simplified - in production, fetch token prices)
+  // Calculate TVL
   const calculateTVL = (reserve0, reserve1, token0Info, token1Info) => {
     if (!token0Info || !token1Info) return 0;
 
@@ -871,16 +871,9 @@ const PoolsPage = () => {
     }
   };
 
-
-
-  const handleCreatePoolSuccess = async (token0, token1) => {
-    // Your pool creation logic
-    console.log('Creating pool for', token0.symbol, token1.symbol);
-    // ... blockchain transaction
-    await fetchPools(); // Refresh list
+  const handleCreatePoolSuccess = () => {
+    fetchPools();
   };
-
-
 
   if (loading) {
     return (
@@ -960,7 +953,10 @@ const PoolsPage = () => {
         <div className={styles.poolsHeader}>
           <h1>Liquidity Pools</h1>
           <div className={styles.headerActions}>
-            <button className={styles.btnSecondary} onClick={() => setShowCreatePool(true)}>
+            <button
+              className={styles.btnSecondary}
+              onClick={() => setShowCreatePool(true)}
+            >
               <span className={styles.icon}>⚡</span> Create Pool
             </button>
             <button
@@ -1433,7 +1429,6 @@ const PoolsPage = () => {
         </div>
       )}
 
-
       <CreatePoolModal
         show={showCreatePool}
         onClose={() => setShowCreatePool(false)}
@@ -1443,7 +1438,6 @@ const PoolsPage = () => {
         getUserTokenBalance={getUserTokenBalance}
         renderTokenLogo={renderTokenLogo}
       />
-
     </div>
   );
 };

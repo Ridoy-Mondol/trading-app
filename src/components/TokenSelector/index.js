@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown, AlertCircle, Zap } from "lucide-react";
 import styles from "./CreatePoolModal.module.sass";
 import TokenSelectionModal from "../TokenModal";
+import { useWallet } from "../../context/WalletContext";
 import cn from "classnames";
 
 const CreatePoolModal = ({
@@ -18,6 +19,8 @@ const CreatePoolModal = ({
   const [selectingToken, setSelectingToken] = useState(null);
   const [poolExists, setPoolExists] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  const { activeSession, walletConnected, connectWallet } = useWallet();
 
   // Check if pool already exists
   useEffect(() => {
@@ -53,11 +56,50 @@ const CreatePoolModal = ({
   const handleCreatePool = async () => {
     if (!token0 || !token1 || poolExists) return;
 
+    if (!walletConnected) {
+      return connectWallet();
+    }
+
     setIsCreating(true);
     try {
-      // Your pool creation logic here
-      await onSuccess(token0, token1);
+      const actions = [
+        {
+          account: "xprswap",
+          name: "createpool",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            token0: token0.symbol.toString().toLowerCase(),
+            token1: token1.symbol.toString().toLowerCase(),
+            token0Contract: token0.account,
+            token1Contract: token1.account,
+            token0Symbol: token0.symbol.toString().toUpperCase(),
+            token1Symbol: token1.symbol.toString().toUpperCase(),
+            token0Precision: token0.supply.precision,
+            token1Precision: token1.supply.precision,
+          },
+        },
+      ];
+
+      const result = await activeSession.transact(
+        {
+          actions,
+        },
+        {
+          broadcast: true,
+        }
+      );
+
+      alert(
+        `✅ Pool created successfully!\n\nTransaction ID: ${result.processed.id}`
+      );
+
       handleClose();
+      await onSuccess();
     } catch (error) {
       console.error("Failed to create pool:", error);
     } finally {
@@ -71,6 +113,7 @@ const CreatePoolModal = ({
     setSelectingToken(null);
     setPoolExists(false);
     onClose();
+    setIsCreating(false);
   };
 
   const removeToken = (tokenPosition) => {

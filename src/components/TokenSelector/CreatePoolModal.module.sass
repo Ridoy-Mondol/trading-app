@@ -572,3 +572,31 @@
   +a
     width: 16px
     height: 16px
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes fadeIn
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes slideUp
+  from
+    opacity: 0
+    transform: translateY(30px) scale(0.96)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@keyframes pulse
+  0%, 100%
+    transform: scale(1)
+  50%
+    transform: scale(1.05)
+
+@keyframes spin
+  to
+    transform: rotate(360deg)

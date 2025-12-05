@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import cn from "classnames"; // if you are using classnames
+import cn from "classnames";
 import { X, Search } from "lucide-react";
 import styles from "./TokenModal.module.sass";
 
@@ -37,17 +37,13 @@ const TokenSelectionModal = ({
     );
   }, [tokens, tokenSearch]);
 
-  // Load initial tokens or reset on filtered tokens change
   useEffect(() => {
-    // Reset state immediately when filteredTokens changes
     setPage(1);
     setIsLoading(false);
 
-    // Set displayed tokens synchronously
     const initialTokens = filteredTokens.slice(0, TOKENS_PER_PAGE);
     setDisplayedTokens(initialTokens);
 
-    // Scroll to top when search changes
     if (tokenListRef.current) {
       tokenListRef.current.scrollTop = 0;
     }
@@ -113,7 +109,7 @@ const TokenSelectionModal = ({
     filteredTokens.length,
   ]);
 
-  // Memoize enriched tokens - this should now update correctly
+  // Memoize enriched tokens
   const enrichedTokens = useMemo(() => {
     return displayedTokens.map((t) => ({
       ...t,
@@ -228,7 +224,7 @@ const TokenSelectionModal = ({
             </div>
           )}
 
-          {/* End Message - Now with correct logic */}
+          {/* End Message */}
           {enrichedTokens.length > 0 &&
             displayedTokens.length >= filteredTokens.length &&
             !isLoading && (
