@@ -1,0 +1,591 @@
+@import ../../styles/helpers
+
+// Modal Overlay & Container
+.modalOverlay
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background: rgba(0, 0, 0, 0.7)
+  display: flex
+  align-items: center
+  justify-content: center
+  z-index: 2000
+  backdrop-filter: blur(10px)
+  animation: fadeIn 0.25s ease
+
+.removeModal
+  width: 90%
+  max-width: 540px
+  background: $n8
+  border-radius: 24px
+  border: 1px solid $n6
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3)
+  display: flex
+  flex-direction: column
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)
+  overflow: hidden
+  max-height: 90vh
+  +dark
+    background: $n2
+    border-color: $n3
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8)
+  +m
+    max-width: 100%
+
+// Header
+.modalHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 24px 28px
+  border-bottom: 1px solid $n6
+  background: linear-gradient(180deg, rgba($p3, 0.03) 0%, transparent 100%)
+  +dark
+    border-color: $n4
+    background: linear-gradient(180deg, rgba($p3, 0.06) 0%, transparent 100%)
+
+.headerLeft
+  display: flex
+  align-items: center
+  gap: 14px
+
+.headerIcon
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 44px
+  height: 44px
+  background: linear-gradient(135deg, $p3 0%, #ff4757 100%)
+  border-radius: 12px
+  box-shadow: 0 4px 16px rgba($p3, 0.3)
+  svg
+    stroke: $white
+
+.modalTitle
+  +body-bold-1
+  color: $n2
+  margin: 0
+  +dark
+    color: $n8
+  +m
+    font-size: 18px
+
+.modalSubtitle
+  +caption-1
+  color: $n4
+  margin: 2px 0 0
+  +dark
+    color: $n5
+
+.modalClose
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 40px
+  height: 40px
+  background: $n7
+  border: none
+  border-radius: 12px
+  cursor: pointer
+  transition: all .2s
+  +dark
+    background: $n3
+  svg
+    stroke: $n4
+    +dark
+      stroke: $n5
+  &:hover
+    background: $n6
+    transform: rotate(90deg) scale(1.05)
+    +dark
+      background: $n4
+    svg
+      stroke: $p3
+
+// Body
+.modalBody
+  padding: 24px 28px
+  display: flex
+  flex-direction: column
+  gap: 20px
+  overflow-y: auto
+  +m
+    padding: 20px
+
+// Position Card
+.positionCard
+  background: linear-gradient(135deg, rgba($p1, 0.05) 0%, rgba($p2, 0.03) 100%)
+  border: 1px solid rgba($p1, 0.15)
+  border-radius: 16px
+  padding: 18px
+  +dark
+    background: linear-gradient(135deg, rgba($p1, 0.08) 0%, rgba($p2, 0.05) 100%)
+
+.positionHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-bottom: 14px
+
+.positionLabel
+  +caption-bold-1
+  color: $n3
+  +dark
+    color: $n6
+
+.positionShare
+  +caption-2
+  color: $p1
+  background: rgba($p1, 0.1)
+  padding: 4px 10px
+  border-radius: 8px
+  font-weight: 600
+
+.positionTokens
+  display: flex
+  gap: 12px
+
+.positionToken
+  flex: 1
+  display: flex
+  align-items: center
+  gap: 10px
+  background: $white
+  padding: 12px
+  border-radius: 12px
+  +dark
+    background: $n3
+
+.tokenLogo
+  font-size: 32px
+  width: 40px
+  height: 40px
+  display: flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, rgba($p1, 0.1) 0%, rgba($p2, 0.15) 100%)
+  border-radius: 50%
+
+.tokenDetails
+  display: flex
+  flex-direction: column
+
+.tokenAmount
+  +body-bold-2
+  color: $n2
+  +dark
+    color: $n8
+
+.tokenSymbol
+  +caption-2
+  color: $n4
+  +dark
+    color: $n5
+
+// Removal Section
+.removalSection
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.sectionHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+
+.sectionLabel
+  +caption-bold-1
+  color: $n3
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  +dark
+    color: $n6
+
+.percentageDisplay
+  +body-bold-1
+  color: $p3
+  font-size: 28px
+
+.percentageButtons
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 8px
+
+.percentBtn
+  padding: 12px
+  background: $n7
+  border: 2px solid transparent
+  border-radius: 12px
+  +body-bold-2
+  color: $n3
+  cursor: pointer
+  transition: all .2s
+  +dark
+    background: $n3
+    color: $n6
+  &:hover
+    border-color: rgba($p3, 0.3)
+    background: $white
+    +dark
+      background: $n2
+  &.active
+    background: linear-gradient(135deg, rgba($p3, 0.12) 0%, rgba(#ff4757, 0.08) 100%)
+    border-color: $p3
+    color: $p3
+    font-weight: 700
+
+.sliderContainer
+  position: relative
+  height: 8px
+  margin-top: 8px
+
+.sliderTrack
+  position: absolute
+  width: 100%
+  height: 8px
+  background: $n6
+  border-radius: 8px
+  +dark
+    background: $n4
+
+.sliderFill
+  height: 100%
+  background: linear-gradient(90deg, $p3 0%, #ff4757 100%)
+  border-radius: 8px
+  transition: width .2s
+
+.slider
+  position: absolute
+  width: 100%
+  height: 8px
+  -webkit-appearance: none
+  background: transparent
+  outline: none
+  z-index: 2
+  cursor: pointer
+  &::-webkit-slider-thumb
+    -webkit-appearance: none
+    width: 20px
+    height: 20px
+    background: $white
+    border: 3px solid $p3
+    border-radius: 50%
+    cursor: pointer
+    box-shadow: 0 2px 8px rgba($p3, 0.3)
+    transition: transform .2s
+    &:hover
+      transform: scale(1.15)
+  &::-moz-range-thumb
+    width: 20px
+    height: 20px
+    background: $white
+    border: 3px solid $p3
+    border-radius: 50%
+    cursor: pointer
+
+// Receive Section
+.receiveSection
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.receiveCards
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.receiveCard
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 16px
+  background: $n7
+  border: 2px solid $n6
+  border-radius: 14px
+  transition: all .2s
+  +dark
+    background: $n3
+    border-color: $n4
+  &:hover
+    border-color: rgba($p3, 0.3)
+
+.receiveLeft
+  display: flex
+  align-items: center
+  gap: 12px
+
+.receiveLogo
+  font-size: 36px
+  width: 44px
+  height: 44px
+  display: flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, rgba($p3, 0.1) 0%, rgba(#ff4757, 0.08) 100%)
+  border-radius: 50%
+
+.receiveSymbol
+  +body-bold-1
+  color: $n2
+  +dark
+    color: $n8
+
+.receiveRight
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+
+.receiveAmount
+  +body-bold-1
+  color: $n2
+  +dark
+    color: $n8
+
+.receiveUsd
+  +caption-2
+  color: $n4
+  +dark
+    color: $n5
+
+// Settings Section
+.settingsSection
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.settingsToggle
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 12px 16px
+  background: $n7
+  border: 2px solid $n6
+  border-radius: 12px
+  +body-2
+  color: $n3
+  cursor: pointer
+  transition: all .2s
+  +dark
+    background: $n3
+    border-color: $n4
+    color: $n6
+  svg
+    stroke: $n4
+  &:hover
+    border-color: $p1
+
+.slippageSettings
+  display: flex
+  flex-direction: column
+  gap: 10px
+  padding: 16px
+  background: $white
+  border: 1px solid $n6
+  border-radius: 12px
+  +dark
+    background: $n2
+    border-color: $n4
+
+.slippagePresets
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 8px
+
+.slippageBtn
+  padding: 10px
+  background: $n7
+  border: 2px solid transparent
+  border-radius: 10px
+  +caption-bold-1
+  color: $n3
+  cursor: pointer
+  transition: all .2s
+  +dark
+    background: $n3
+    color: $n6
+  &:hover
+    border-color: rgba($p1, 0.3)
+  &.active
+    background: rgba($p1, 0.1)
+    border-color: $p1
+    color: $p1
+
+.customSlippageInput
+  padding: 10px 12px
+  background: $n7
+  border: 2px solid transparent
+  border-radius: 10px
+  +caption-bold-1
+  color: $n2
+  text-align: center
+  outline: none
+  +dark
+    background: $n3
+    color: $n8
+  &:focus
+    border-color: $p1
+  +placeholder
+    color: $n5
+
+.slippageInfo
+  display: flex
+  gap: 8px
+  padding: 10px
+  background: rgba($p1, 0.05)
+  border-radius: 8px
+  +caption-2
+  color: $n4
+  +dark
+    background: rgba($p1, 0.08)
+    color: $n5
+  svg
+    flex-shrink: 0
+    stroke: $p1
+    margin-top: 2px
+
+// Details Card
+.detailsCard
+  background: $n7
+  border: 1px solid $n6
+  border-radius: 14px
+  padding: 16px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  +dark
+    background: $n3
+    border-color: $n4
+
+.detailRow
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 8px 0
+  &:not(:last-child)
+    border-bottom: 1px solid $n6
+    +dark
+      border-color: $n4
+
+.detailLabel
+  +caption-1
+  color: $n4
+  +dark
+    color: $n5
+
+.detailValue
+  +body-bold-2
+  color: $n2
+  +dark
+    color: $n8
+
+// Warning Box
+.warningBox
+  display: flex
+  gap: 12px
+  padding: 14px
+  background: rgba($p3, 0.08)
+  border: 1px solid rgba($p3, 0.2)
+  border-radius: 12px
+  +dark
+    background: rgba($p3, 0.12)
+    border-color: rgba($p3, 0.3)
+  svg
+    flex-shrink: 0
+    stroke: $p3
+
+.warningTitle
+  +caption-bold-1
+  color: $p3
+  margin-bottom: 4px
+
+.warningText
+  +caption-2
+  color: $n3
+  +dark
+    color: $n6
+
+// Footer
+.modalFooter
+  display: flex
+  gap: 12px
+  padding: 20px 28px
+  border-top: 1px solid $n6
+  background: $n7
+  +dark
+    border-color: $n4
+    background: $n3
+  +m
+    padding: 16px 20px
+
+.btnSecondary
+  flex: 1
+  padding: 14px 20px
+  background: $white
+  color: $n3
+  border: 2px solid $n5
+  border-radius: 12px
+  font-size: 15px
+  font-weight: 600
+  cursor: pointer
+  transition: all .2s
+  +dark
+    background: $n2
+    color: $n6
+    border-color: $n4
+  &:hover:not(:disabled)
+    border-color: $n4
+    transform: translateY(-2px)
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.btnPrimary
+  flex: 2
+  padding: 14px 24px
+  background: linear-gradient(135deg, $p3 0%, #ff4757 100%)
+  color: $white
+  border: none
+  border-radius: 12px
+  font-size: 15px
+  font-weight: 700
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+  transition: all .2s
+  box-shadow: 0 4px 16px rgba($p3, 0.3)
+  &:hover:not(:disabled)
+    transform: translateY(-2px)
+    box-shadow: 0 6px 24px rgba($p3, 0.4)
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.spinner
+  width: 16px
+  height: 16px
+  border: 2px solid rgba($white, 0.3)
+  border-top-color: $white
+  border-radius: 50%
+  animation: spin 0.8s linear infinite
+
+@keyframes fadeIn
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes slideUp
+  from
+    opacity: 0
+    transform: translateY(30px) scale(0.96)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@keyframes spin
+  to
+    transform: rotate(360deg)

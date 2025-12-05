@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./pools.module.sass";
 import CreatePoolModal from "../../components/TokenSelector";
+import RemoveLiquidityModal from "../../components/RemLiquidity";
 import cn from "classnames";
 import { JsonRpc } from "eosjs";
 import { useWallet } from "../../context/WalletContext";
@@ -13,6 +14,7 @@ const PoolsPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddLiquidity, setShowAddLiquidity] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedPool, setSelectedPool] = useState(null);
   const [sortBy, setSortBy] = useState("tvl");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -875,6 +877,56 @@ const PoolsPage = () => {
     fetchPools();
   };
 
+  // Handle remove button click
+  const handleRemoveClick = (pool, e) => {
+    e.stopPropagation();
+    setSelectedPool(pool);
+    setShowRemoveModal(true);
+  };
+
+  // Handle remove liquidity transaction
+  const handleRemoveLiquidity = async (removeParams) => {
+    try {
+      // Your transaction logic here
+      // const result = await session.transact({
+      //   actions: [
+      //     {
+      //       account: 'xprswap', // Your contract name
+      //       name: 'remliquidity',
+      //       authorization: [session.permissionLevel],
+      //       data: {
+      //         token0: removeParams.token0,
+      //         token1: removeParams.token1,
+      //         token0_contract: removeParams.token0Contract,
+      //         token1_contract: removeParams.token1Contract,
+      //         liquidity: removeParams.liquidity,
+      //         amount0_min: removeParams.amount0Min,
+      //         amount1_min: removeParams.amount1Min,
+      //         token0_symbol: removeParams.token0Symbol,
+      //         token1_symbol: removeParams.token1Symbol,
+      //         token0_precision: removeParams.token0Precision,
+      //         token1_precision: removeParams.token1Precision,
+      //         provider: removeParams.provider,
+      //       },
+      //     },
+      //   ],
+      // });
+
+      console.log("Liquidity removed successfully:");
+
+      // Refresh pools data
+      await fetchPools();
+
+      // Show success notification (optional)
+      // showNotification('Liquidity removed successfully!', 'success');
+    } catch (error) {
+      console.error("Failed to remove liquidity:", error);
+      // Show error notification (optional)
+      // showNotification('Failed to remove liquidity', 'error');
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.poolsPage}>
@@ -1121,6 +1173,7 @@ const PoolsPage = () => {
                     {pool.yourLiquidity > 0 && activeTab === "my" && (
                       <button
                         className={cn(styles.btnAction, styles.btnRemove)}
+                        onClick={(e) => handleRemoveClick(pool, e)}
                       >
                         Remove
                       </button>
@@ -1438,6 +1491,22 @@ const PoolsPage = () => {
         getUserTokenBalance={getUserTokenBalance}
         renderTokenLogo={renderTokenLogo}
       />
+
+      {/* Remove Liquidity Modal */}
+      {showRemoveModal && selectedPool && (
+        <RemoveLiquidityModal
+          show={showRemoveModal}
+          onClose={() => {
+            setShowRemoveModal(false);
+            setSelectedPool(null);
+          }}
+          pool={selectedPool}
+          userPosition={selectedPool.userPosition}
+          onRemove={handleRemoveLiquidity}
+          renderTokenLogo={renderTokenLogo}
+          accountName={activeSession.auth.actor.toString()}
+        />
+      )}
     </div>
   );
 };
