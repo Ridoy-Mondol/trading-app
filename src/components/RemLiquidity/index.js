@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, AlertCircle, TrendingDown, Settings, Info } from "lucide-react";
 import styles from "./RemoveLiquidityModal.module.sass";
+import { useWallet } from "../../context/WalletContext";
 import cn from "classnames";
 
 const RemoveLiquidityModal = ({
@@ -8,9 +9,7 @@ const RemoveLiquidityModal = ({
   onClose,
   pool,
   userPosition,
-  onRemove,
   renderTokenLogo,
-  accountName,
 }) => {
   const [removePercentage, setRemovePercentage] = useState(100);
   const [slippage, setSlippage] = useState(0.5);
@@ -18,18 +17,16 @@ const RemoveLiquidityModal = ({
   const [customSlippage, setCustomSlippage] = useState("");
   const [isRemoving, setIsRemoving] = useState(false);
 
+  const { activeSession, walletConnected, connectWallet } = useWallet();
+
   // Calculate amounts based on percentage
   const liquidityToRemove = Math.floor(
     (userPosition.lp_balance * removePercentage) / 100
   );
 
-  const amount0 = Math.floor(
-    (liquidityToRemove * pool.reserve0) / pool.lp_supply
-  );
+  const amount0 = (liquidityToRemove * pool.reserve0) / pool.lp_supply;
 
-  const amount1 = Math.floor(
-    (liquidityToRemove * pool.reserve1) / pool.lp_supply
-  );
+  const amount1 = (liquidityToRemove * pool.reserve1) / pool.lp_supply;
 
   // Calculate minimum amounts with slippage
   const amount0Min = Math.floor(amount0 * (1 - slippage / 100));
@@ -49,27 +46,62 @@ const RemoveLiquidityModal = ({
   const poolShare = (userPosition.lp_balance / pool.lp_supply) * 100;
 
   const newPoolShare =
-    ((userPosition.lp_balance - liquidityToRemove) / pool.lp_supply) * 100;
+    ((userPosition.lp_balance - liquidityToRemove) /
+      (pool.lp_supply - liquidityToRemove)) *
+    100;
 
   const handleRemove = async () => {
     if (liquidityToRemove === 0) return;
 
+    if (!walletConnected) {
+      return connectWallet();
+    }
+
     setIsRemoving(true);
     try {
-      await onRemove({
-        token0: pool.token0,
-        token1: pool.token1,
-        token0Contract: pool.token0_contract,
-        token1Contract: pool.token1_contract,
-        liquidity: liquidityToRemove,
-        amount0Min: amount0Min,
-        amount1Min: amount1Min,
-        token0Symbol: pool.token0_symbol,
-        token1Symbol: pool.token1_symbol,
-        token0Precision: token0Precision,
-        token1Precision: token1Precision,
-        provider: accountName,
-      });
+      const actions = [
+        {
+          account: "xprswap",
+          name: "remliquidity",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            token0: pool.token0.symbol.toString().toLowerCase(),
+            token1: pool.token1.symbol.toString().toLowerCase(),
+            token0Contract: pool.token0_contract,
+            token1Contract: pool.token1_contract,
+            liquidity: liquidityToRemove,
+            amount0Min: Math.floor(
+              token0AmountMin * 10 ** pool.token0.precision
+            ),
+            amount1Min: Math.floor(
+              token1AmountMin * 10 ** pool.token1.precision
+            ),
+            token0Symbol: pool.token0.symbol.toString().toUpperCase(),
+            token1Symbol: pool.token1.symbol.toString().toUpperCase(),
+            token0Precision: pool.token0.precision,
+            token1Precision: pool.token1.precision,
+            provider: activeSession?.auth?.actor.toString(),
+          },
+        },
+      ];
+
+      const result = await activeSession.transact(
+        {
+          actions,
+        },
+        {
+          broadcast: true,
+        }
+      );
+
+      alert(
+        `✅ Liquidity removed successfully!\n\nTransaction ID: ${result.processed.id}`
+      );
 
       onClose();
     } catch (error) {
