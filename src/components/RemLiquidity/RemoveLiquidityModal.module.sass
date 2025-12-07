@@ -14,6 +14,11 @@
   z-index: 2000
   backdrop-filter: blur(10px)
   animation: fadeIn 0.25s ease
+  +m
+    padding: 16px
+  +a
+    padding: 0
+    align-items: flex-end
 
 .removeModal
   width: 90%
@@ -33,6 +38,10 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8)
   +m
     max-width: 100%
+    max-height: 95vh
+  +a
+    width: 100%
+    border-radius: 20px 20px 0 0
 
 // Header
 .modalHeader
@@ -45,11 +54,17 @@
   +dark
     border-color: $n4
     background: linear-gradient(180deg, rgba($p3, 0.06) 0%, transparent 100%)
+  +m
+    padding: 20px 24px
+  +a
+    padding: 18px 20px
 
 .headerLeft
   display: flex
   align-items: center
   gap: 14px
+  +a
+    gap: 10px
 
 .headerIcon
   display: flex
@@ -60,8 +75,15 @@
   background: linear-gradient(135deg, $p3 0%, #ff4757 100%)
   border-radius: 12px
   box-shadow: 0 4px 16px rgba($p3, 0.3)
+  +a
+    width: 36px
+    height: 36px
+    border-radius: 10px
   svg
     stroke: $white
+    +a
+      width: 20px
+      height: 20px
 
 .modalTitle
   +body-bold-1
@@ -71,6 +93,8 @@
     color: $n8
   +m
     font-size: 18px
+  +a
+    font-size: 17px
 
 .modalSubtitle
   +caption-1
@@ -78,6 +102,8 @@
   margin: 2px 0 0
   +dark
     color: $n5
+  +a
+    font-size: 12px
 
 .modalClose
   display: flex
@@ -90,12 +116,19 @@
   border-radius: 12px
   cursor: pointer
   transition: all .2s
+  flex-shrink: 0
   +dark
     background: $n3
+  +a
+    width: 36px
+    height: 36px
   svg
     stroke: $n4
     +dark
       stroke: $n5
+    +a
+      width: 20px
+      height: 20px
   &:hover
     background: $n6
     transform: rotate(90deg) scale(1.05)
@@ -113,6 +146,9 @@
   overflow-y: auto
   +m
     padding: 20px
+  +a
+    padding: 18px 16px
+    gap: 16px
 
 // Position Card
 .positionCard
@@ -122,18 +158,27 @@
   padding: 18px
   +dark
     background: linear-gradient(135deg, rgba($p1, 0.08) 0%, rgba($p2, 0.05) 100%)
+  +a
+    padding: 14px
+    border-radius: 12px
 
 .positionHeader
   display: flex
   justify-content: space-between
   align-items: center
   margin-bottom: 14px
+  +a
+    flex-wrap: wrap
+    gap: 6px
+    margin-bottom: 12px
 
 .positionLabel
   +caption-bold-1
   color: $n3
   +dark
     color: $n6
+  +a
+    font-size: 12px
 
 .positionShare
   +caption-2
@@ -142,10 +187,17 @@
   padding: 4px 10px
   border-radius: 8px
   font-weight: 600
+  +a
+    padding: 3px 8px
+    font-size: 11px
+    border-radius: 6px
 
 .positionTokens
   display: flex
   gap: 12px
+  +a
+    flex-direction: column
+    gap: 10px
 
 .positionToken
   flex: 1
@@ -157,6 +209,10 @@
   border-radius: 12px
   +dark
     background: $n3
+  +a
+    padding: 10px
+    gap: 8px
+    border-radius: 10px
 
 .tokenLogo
   font-size: 32px
@@ -167,33 +223,49 @@
   justify-content: center
   background: linear-gradient(135deg, rgba($p1, 0.1) 0%, rgba($p2, 0.15) 100%)
   border-radius: 50%
+  flex-shrink: 0
+  +a
+    font-size: 28px
+    width: 36px
+    height: 36px
 
 .tokenDetails
   display: flex
   flex-direction: column
+  gap: 2px
+  min-width: 0
+  flex: 1
 
 .tokenAmount
   +body-bold-2
   color: $n2
   +dark
     color: $n8
+  +a
+    font-size: 14px
 
 .tokenSymbol
   +caption-2
   color: $n4
   +dark
     color: $n5
+  +a
+    font-size: 11px
 
 // Removal Section
 .removalSection
   display: flex
   flex-direction: column
   gap: 14px
+  +a
+    gap: 12px
 
 .sectionHeader
   display: flex
   justify-content: space-between
   align-items: center
+  +a
+    flex-wrap: wrap
 
 .sectionLabel
   +caption-bold-1
@@ -202,16 +274,22 @@
   letter-spacing: 0.5px
   +dark
     color: $n6
+  +a
+    font-size: 12px
 
 .percentageDisplay
   +body-bold-1
   color: $p3
   font-size: 28px
+  +a
+    font-size: 24px
 
 .percentageButtons
   display: grid
   grid-template-columns: repeat(4, 1fr)
   gap: 8px
+  +a
+    gap: 6px
 
 .percentBtn
   padding: 12px
@@ -225,6 +303,10 @@
   +dark
     background: $n3
     color: $n6
+  +a
+    padding: 10px 8px
+    font-size: 14px
+    border-radius: 10px
   &:hover
     border-color: rgba($p3, 0.3)
     background: $white
@@ -240,6 +322,8 @@
   position: relative
   height: 8px
   margin-top: 8px
+  +a
+    margin-top: 6px
 
 .sliderTrack
   position: absolute
@@ -249,6 +333,8 @@
   border-radius: 8px
   +dark
     background: $n4
+  +a
+    height: 6px
 
 .sliderFill
   height: 100%
@@ -265,6 +351,9 @@
   outline: none
   z-index: 2
   cursor: pointer
+  +a
+    height: 20px
+    top: -6px
   &::-webkit-slider-thumb
     -webkit-appearance: none
     width: 20px
@@ -275,6 +364,10 @@
     cursor: pointer
     box-shadow: 0 2px 8px rgba($p3, 0.3)
     transition: transform .2s
+    +a
+      width: 18px
+      height: 18px
+      border-width: 2.5px
     &:hover
       transform: scale(1.15)
   &::-moz-range-thumb
@@ -284,17 +377,24 @@
     border: 3px solid $p3
     border-radius: 50%
     cursor: pointer
+    +a
+      width: 18px
+      height: 18px
 
 // Receive Section
 .receiveSection
   display: flex
   flex-direction: column
   gap: 12px
+  +a
+    gap: 10px
 
 .receiveCards
   display: flex
   flex-direction: column
   gap: 10px
+  +a
+    gap: 8px
 
 .receiveCard
   display: flex
@@ -308,6 +408,10 @@
   +dark
     background: $n3
     border-color: $n4
+  +a
+    padding: 12px
+    border-radius: 12px
+    gap: 8px
   &:hover
     border-color: rgba($p3, 0.3)
 
@@ -315,6 +419,10 @@
   display: flex
   align-items: center
   gap: 12px
+  min-width: 0
+  flex: 1
+  +a
+    gap: 10px
 
 .receiveLogo
   font-size: 36px
@@ -325,35 +433,50 @@
   justify-content: center
   background: linear-gradient(135deg, rgba($p3, 0.1) 0%, rgba(#ff4757, 0.08) 100%)
   border-radius: 50%
+  flex-shrink: 0
+  +a
+    font-size: 32px
+    width: 40px
+    height: 40px
 
 .receiveSymbol
   +body-bold-1
   color: $n2
   +dark
     color: $n8
+  +a
+    font-size: 16px
 
 .receiveRight
   display: flex
   flex-direction: column
   align-items: flex-end
+  gap: 2px
+  flex-shrink: 0
 
 .receiveAmount
   +body-bold-1
   color: $n2
   +dark
     color: $n8
+  +a
+    font-size: 16px
 
 .receiveUsd
   +caption-2
   color: $n4
   +dark
     color: $n5
+  +a
+    font-size: 11px
 
 // Settings Section
 .settingsSection
   display: flex
   flex-direction: column
   gap: 12px
+  +a
+    gap: 10px
 
 .settingsToggle
   display: flex
@@ -371,8 +494,17 @@
     background: $n3
     border-color: $n4
     color: $n6
+  +a
+    padding: 10px 14px
+    font-size: 14px
+    border-radius: 10px
+    gap: 8px
   svg
     stroke: $n4
+    flex-shrink: 0
+    +a
+      width: 16px
+      height: 16px
   &:hover
     border-color: $p1
 
@@ -387,11 +519,18 @@
   +dark
     background: $n2
     border-color: $n4
+  +a
+    padding: 12px
+    gap: 8px
+    border-radius: 10px
 
 .slippagePresets
   display: grid
   grid-template-columns: repeat(4, 1fr)
   gap: 8px
+  +a
+    grid-template-columns: repeat(3, 1fr)
+    gap: 6px
 
 .slippageBtn
   padding: 10px
@@ -405,6 +544,10 @@
   +dark
     background: $n3
     color: $n6
+  +a
+    padding: 8px 6px
+    font-size: 12px
+    border-radius: 8px
   &:hover
     border-color: rgba($p1, 0.3)
   &.active
@@ -424,6 +567,11 @@
   +dark
     background: $n3
     color: $n8
+  +a
+    padding: 8px 10px
+    font-size: 12px
+    border-radius: 8px
+    grid-column: 1 / -1
   &:focus
     border-color: $p1
   +placeholder
@@ -437,13 +585,21 @@
   border-radius: 8px
   +caption-2
   color: $n4
+  line-height: 1.5
   +dark
     background: rgba($p1, 0.08)
     color: $n5
+  +a
+    padding: 8px
+    font-size: 11px
+    gap: 6px
   svg
     flex-shrink: 0
     stroke: $p1
     margin-top: 2px
+    +a
+      width: 12px
+      height: 12px
 
 // Details Card
 .detailsCard
@@ -457,12 +613,20 @@
   +dark
     background: $n3
     border-color: $n4
+  +a
+    padding: 12px
+    gap: 8px
+    border-radius: 12px
 
 .detailRow
   display: flex
   justify-content: space-between
   align-items: center
   padding: 8px 0
+  gap: 12px
+  +a
+    padding: 6px 0
+    gap: 8px
   &:not(:last-child)
     border-bottom: 1px solid $n6
     +dark
@@ -473,12 +637,17 @@
   color: $n4
   +dark
     color: $n5
+  +a
+    font-size: 12px
 
 .detailValue
   +body-bold-2
   color: $n2
+  text-align: right
   +dark
     color: $n8
+  +a
+    font-size: 14px
 
 // Warning Box
 .warningBox
@@ -491,20 +660,33 @@
   +dark
     background: rgba($p3, 0.12)
     border-color: rgba($p3, 0.3)
+  +a
+    padding: 12px
+    gap: 10px
+    border-radius: 10px
   svg
     flex-shrink: 0
     stroke: $p3
+    +a
+      width: 18px
+      height: 18px
 
 .warningTitle
   +caption-bold-1
   color: $p3
   margin-bottom: 4px
+  +a
+    font-size: 12px
+    margin-bottom: 2px
 
 .warningText
   +caption-2
   color: $n3
+  line-height: 1.5
   +dark
     color: $n6
+  +a
+    font-size: 11px
 
 // Footer
 .modalFooter
@@ -513,11 +695,16 @@
   padding: 20px 28px
   border-top: 1px solid $n6
   background: $n7
+  flex-shrink: 0
   +dark
     border-color: $n4
     background: $n3
   +m
     padding: 16px 20px
+  +a
+    flex-direction: column
+    padding: 14px 16px
+    gap: 10px
 
 .btnSecondary
   flex: 1
@@ -534,6 +721,11 @@
     background: $n2
     color: $n6
     border-color: $n4
+  +a
+    width: 100%
+    padding: 12px 20px
+    font-size: 14px
+    border-radius: 10px
   &:hover:not(:disabled)
     border-color: $n4
     transform: translateY(-2px)
@@ -557,6 +749,16 @@
   gap: 8px
   transition: all .2s
   box-shadow: 0 4px 16px rgba($p3, 0.3)
+  +a
+    width: 100%
+    padding: 12px 24px
+    font-size: 14px
+    border-radius: 10px
+    gap: 6px
+  svg
+    +a
+      width: 16px
+      height: 16px
   &:hover:not(:disabled)
     transform: translateY(-2px)
     box-shadow: 0 6px 24px rgba($p3, 0.4)
@@ -571,6 +773,9 @@
   border-top-color: $white
   border-radius: 50%
   animation: spin 0.8s linear infinite
+  +a
+    width: 14px
+    height: 14px
 
 @keyframes fadeIn
   from

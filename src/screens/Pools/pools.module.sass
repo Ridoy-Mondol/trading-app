@@ -10,6 +10,12 @@
     color: $n2
     +dark
         color: $n8
+    +t
+        padding: 32px 20px
+    +m
+        padding: 24px 16px
+    +a
+        padding: 20px 12px
 
     // Stats Header
     .statsHeader
@@ -17,6 +23,17 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
         gap: 20px
         margin-bottom: 40px
+        +t
+            grid-template-columns: repeat(2, 1fr)
+            gap: 16px
+            margin-bottom: 32px
+        +m
+            grid-template-columns: 1fr
+            gap: 16px
+            margin-bottom: 32px
+        +a
+            gap: 12px
+            margin-bottom: 24px
 
         .statCard
             background: $n8
@@ -27,6 +44,12 @@
             +dark
                 background: $n2
                 border-color: $n3
+            +t
+                padding: 18px
+            +m
+                padding: 20px
+            +a
+                padding: 16px
 
             &:hover
                 transform: translateY(-2px)
@@ -44,6 +67,12 @@
                 margin-bottom: 12px
                 +dark
                     color: $n5
+                +t
+                    font-size: 12px
+                    margin-bottom: 10px
+                +a
+                    font-size: 12px
+                    margin-bottom: 8px
 
             .statValue
                 font-size: 32px
@@ -52,22 +81,31 @@
                 margin-bottom: 8px
                 +dark
                     color: $n8
+                +t
+                    font-size: 26px
+                    margin-bottom: 6px
+                +m
+                    font-size: 28px
+                +a
+                    font-size: 24px
 
             .statChange
                 font-size: 14px
                 color: $n4
                 +dark
                     color: $n5
+                +t
+                    font-size: 13px
+                +a
+                    font-size: 13px
 
                 &.positive
                     color: $p4
-
                     &::before
                         content: '↑ '
 
                 &.negative
                     color: $p3
-
                     &::before
                         content: '↓ '
 
@@ -82,12 +120,30 @@
             background: $n2
             border-color: $n3
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2)
+        +t
+            padding: 20px
+        +m
+            padding: 20px
+        +a
+            padding: 16px
+            border-radius: 12px
 
         .poolsHeader
             display: flex
             justify-content: space-between
             align-items: center
             margin-bottom: 32px
+            gap: 16px
+            +t
+                margin-bottom: 24px
+                flex-wrap: wrap
+            +m
+                flex-direction: column
+                align-items: flex-start
+                gap: 16px
+                margin-bottom: 20px
+            +a
+                gap: 12px
 
             h1
                 font-size: 28px
@@ -96,11 +152,30 @@
                 color: $n2
                 +dark
                     color: $n8
+                +t
+                    font-size: 22px
+                +m
+                    font-size: 24px
+                +a
+                    font-size: 20px
 
             .headerActions
                 display: flex
                 gap: 12px
                 align-items: center
+                +t
+                    gap: 10px
+                +m
+                    width: 100%
+                    flex-wrap: wrap
+                +a
+                    gap: 8px
+
+                .btnPrimary,
+                .btnSecondary
+                    +t
+                        padding: 10px 18px
+                        font-size: 13px
 
         // Controls
         .controls
@@ -110,6 +185,16 @@
             margin-bottom: 24px
             gap: 20px
             flex-wrap: wrap
+            +t
+                gap: 16px
+                margin-bottom: 20px
+            +m
+                flex-direction: column
+                align-items: stretch
+                gap: 16px
+                margin-bottom: 20px
+            +a
+                gap: 12px
 
             .tabs
                 display: flex
@@ -119,6 +204,12 @@
                 border-radius: 8px
                 +dark
                     background: $n3
+                +t
+                    gap: 6px
+                +m
+                    width: 100%
+                +a
+                    gap: 6px
 
                 .tab
                     padding: 10px 20px
@@ -130,8 +221,18 @@
                     font-weight: 500
                     cursor: pointer
                     transition: all 0.2s ease
+                    white-space: nowrap
                     +dark
                         color: $n5
+                    +t
+                        padding: 8px 16px
+                        font-size: 13px
+                    +m
+                        flex: 1
+                        text-align: center
+                    +a
+                        padding: 8px 16px
+                        font-size: 13px
 
                     &:hover
                         color: $n2
@@ -148,6 +249,14 @@
                 position: relative
                 flex: 1
                 max-width: 400px
+                min-width: 200px
+                +t
+                    max-width: 300px
+                    min-width: 180px
+                +m
+                    max-width: none
+                    width: 100%
+                    min-width: 0
 
                 input
                     width: 100%
@@ -162,13 +271,19 @@
                         background: $n3
                         border-color: $n4
                         color: $n8
+                    +t
+                        padding: 10px 14px
+                        font-size: 13px
+                    +a
+                        padding: 10px 14px
+                        font-size: 13px
 
                     &:focus
                         outline: none
                         border-color: $p1
                         box-shadow: 0 0 0 3px rgba($p1, 0.1)
 
-                    &::placeholder
+                    +placeholder
                         color: $n4
                         +dark
                             color: $n5
@@ -180,18 +295,28 @@
             border: 1px solid $n6
             +dark
                 border-color: $n3
-
+            +m
+                border: none
+                overflow-x: visible
             .poolsTable
                 width: 100%
+                min-width: 800px
                 border-collapse: collapse
                 background: $n8
                 +dark
                     background: $n2
+                +t
+                    min-width: 700px
+                +m
+                    min-width: 0
+                    width: 100%
 
                 thead
                     background: $n7
                     +dark
                         background: $n3
+                    +m
+                        display: none
 
                     tr
                         border-bottom: 2px solid $n6
@@ -209,6 +334,10 @@
                         white-space: nowrap
                         +dark
                             color: $n5
+                        +t
+                            padding: 12px 8px
+                            font-size: 11px
+                            letter-spacing: 0.3px
 
                         &.sortable
                             cursor: pointer
@@ -227,11 +356,27 @@
                         cursor: pointer
                         +dark
                             border-color: $n3
+                        +m
+                            display: flex
+                            flex-direction: column
+                            padding: 16px
+                            gap: 12px
+                            border: 1px solid $n6
+                            border-radius: 12px
+                            margin-bottom: 12px
+                            cursor: default
+                            +dark
+                                border-color: $n3
+                        +a
+                            padding: 12px
+                            gap: 10px
 
                         &:hover
                             background: $n7
                             +dark
                                 background: $n3
+                            +m
+                                background: transparent
 
                         &.myLiquidity
                             background: rgba($p1, 0.05)
@@ -240,6 +385,8 @@
 
                         &:last-child
                             border-bottom: none
+                            +m
+                                margin-bottom: 0
 
                     td
                         padding: 20px 16px
@@ -247,6 +394,23 @@
                         color: $n2
                         +dark
                             color: $n8
+                        +t
+                            padding: 14px 8px
+                            font-size: 13px
+                        +m
+                            padding: 0
+                            display: flex
+                            justify-content: space-between
+                            align-items: center
+                            font-size: 14px
+                            &::before
+                                content: attr(data-label)
+                                font-weight: 600
+                                color: $n4
+                                +dark
+                                    color: $n5
+                        +a
+                            font-size: 13px
 
                         &.poolRank
                             color: $n4
@@ -254,12 +418,23 @@
                             font-size: 16px
                             +dark
                                 color: $n5
+                            +t
+                                font-size: 14px
+                            +m
+                                display: none
 
                         &.poolPair
+                            +m
+                                &::before
+                                    content: ''
                             .tokenLogos
                                 display: inline-flex
                                 margin-right: 12px
                                 position: relative
+                                +t
+                                    margin-right: 8px
+                                +m
+                                    margin-right: 0
 
                                 .tokenLogo
                                     width: 32px
@@ -274,9 +449,21 @@
                                     +dark
                                         background: $n3
                                         border-color: $n2
+                                    +t
+                                        width: 28px
+                                        height: 28px
+                                        font-size: 16px
+                                    +a
+                                        width: 28px
+                                        height: 28px
+                                        font-size: 16px
 
                                     &:last-child
                                         margin-left: -12px
+                                        +t
+                                            margin-left: -10px
+                                        +a
+                                            margin-left: -10px
 
                             .pairInfo
                                 display: inline-block
@@ -288,28 +475,50 @@
                                     margin-bottom: 4px
                                     +dark
                                         color: $n8
+                                    +t
+                                        font-size: 13px
+                                    +a
+                                        font-size: 14px
 
                                 .pairNames
                                     font-size: 12px
                                     color: $n4
                                     +dark
                                         color: $n5
+                                    +t
+                                        font-size: 11px
+                                    +a
+                                        font-size: 11px
 
                         &.poolTvl,
                         &.poolVolume,
                         &.poolFees
+                            +m
+                                &::before
+                                    content: attr(data-label)
                             .value
                                 font-weight: 600
                                 color: $n2
                                 +dark
                                     color: $n8
+                                +t
+                                    font-size: 13px
 
                         &.poolApr
+                            +m
+                                &::before
+                                    content: 'APR'
                             .aprBadge
                                 padding: 6px 12px
                                 border-radius: 20px
                                 font-weight: 600
                                 font-size: 13px
+                                +t
+                                    padding: 5px 10px
+                                    font-size: 12px
+                                +a
+                                    padding: 5px 10px
+                                    font-size: 12px
 
                                 &.high
                                     background: rgba($p4, 0.15)
@@ -324,6 +533,9 @@
                                     color: $n4
 
                         &.poolLiquidity
+                            +m
+                                &::before
+                                    content: 'LP Supply'
                             .yourLiquidity
                                 display: flex
                                 align-items: center
@@ -332,6 +544,8 @@
                                 .value
                                     font-weight: 600
                                     color: $p1
+                                    +t
+                                        font-size: 13px
 
                                 .badge
                                     padding: 4px 8px
@@ -340,6 +554,8 @@
                                     border-radius: 4px
                                     font-size: 11px
                                     font-weight: 600
+                                    +t
+                                        font-size: 10px
 
                             .noLiquidity
                                 color: $n4
@@ -348,7 +564,10 @@
 
                         &.poolActions
                             text-align: right
-
+                            +m
+                                justify-content: flex-end
+                                &::before
+                                    content: ''
                             .btnAction
                                 padding: 8px 16px
                                 border: none
@@ -358,6 +577,16 @@
                                 cursor: pointer
                                 transition: all 0.2s ease
                                 margin-left: 8px
+                                +t
+                                    padding: 6px 12px
+                                    font-size: 12px
+                                    margin-left: 4px
+                                +m
+                                    margin-left: 0
+                                    margin-right: 8px
+                                +a
+                                    padding: 6px 12px
+                                    font-size: 12px
 
                                 &.btnAdd
                                     background: $p1
@@ -380,11 +609,23 @@
         .emptyState
             text-align: center
             padding: 80px 20px
+            +t
+                padding: 60px 20px
+            +m
+                padding: 60px 20px
+            +a
+                padding: 40px 16px
 
             .emptyIcon
                 font-size: 64px
                 margin-bottom: 20px
                 opacity: 0.3
+                +t
+                    font-size: 52px
+                +m
+                    font-size: 48px
+                +a
+                    font-size: 40px
 
             h3
                 font-size: 20px
@@ -392,12 +633,20 @@
                 margin-bottom: 8px
                 +dark
                     color: $n8
+                +t
+                    font-size: 18px
+                +a
+                    font-size: 18px
 
             p
                 color: $n4
                 font-size: 14px
                 +dark
                     color: $n5
+                +t
+                    font-size: 13px
+                +a
+                    font-size: 13px
 
     // Loading State
     .loading
@@ -406,17 +655,31 @@
         align-items: center
         justify-content: center
         padding: 80px 20px
+        +t
+            padding: 60px 20px
+        +m
+            padding: 60px 20px
+        +a
+            padding: 40px 16px
 
         .spinner
             font-size: 48px
             margin-bottom: 16px
             animation: spin 1s linear infinite
+            +t
+                font-size: 42px
+            +a
+                font-size: 40px
 
         p
             color: $n4
             font-size: 16px
             +dark
                 color: $n5
+            +t
+                font-size: 15px
+            +a
+                font-size: 14px
 
         @keyframes spin
             from
@@ -441,10 +704,26 @@
     gap: 8px
     transition: all 0.2s ease
     box-shadow: 0 4px 12px rgba($p1, 0.2)
+    +t
+        padding: 10px 18px
+        font-size: 13px
+    +m
+        padding: 10px 20px
+        font-size: 13px
+        width: 100%
+        justify-content: center
+    +a
+        padding: 10px 16px
+        font-size: 12px
+        gap: 6px
 
     .icon
         font-size: 18px
         font-weight: 700
+        +t
+            font-size: 16px
+        +a
+            font-size: 16px
 
     &:hover
         transform: translateY(-2px)
@@ -472,6 +751,16 @@
         background: $n3
         color: $n8
         border-color: $n4
+    +t
+        padding: 10px 18px
+        font-size: 13px
+    +m
+        padding: 10px 20px
+        font-size: 13px
+        width: 100%
+    +a
+        padding: 10px 16px
+        font-size: 12px
 
     &:hover
         background: $n6
@@ -499,6 +788,11 @@
     animation: fadeIn 0.2s ease
     +dark
         background: rgba(0, 0, 0, 0.85)
+    +m
+        padding: 16px
+        align-items: flex-end
+    +a
+        padding: 0
 
     @keyframes fadeIn
         from
@@ -520,6 +814,11 @@
             background: $n2
             border-color: $n3
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6)
+        +m
+            max-width: 100%
+            max-height: 95vh
+        +a
+            border-radius: 16px 16px 0 0
 
         @keyframes slideUp
             from
@@ -537,6 +836,10 @@
             align-items: center
             +dark
                 border-color: $n3
+            +m
+                padding: 20px
+            +a
+                padding: 18px 16px
 
             h2
                 font-size: 20px
@@ -545,6 +848,10 @@
                 color: $n2
                 +dark
                     color: $n8
+                +m
+                    font-size: 18px
+                +a
+                    font-size: 17px
 
             .closeBtn
                 width: 32px
@@ -559,9 +866,14 @@
                 align-items: center
                 justify-content: center
                 transition: all 0.2s ease
+                flex-shrink: 0
                 +dark
                     background: $n3
                     color: $n5
+                +a
+                    width: 28px
+                    height: 28px
+                    font-size: 20px
 
                 &:hover
                     background: $n6
@@ -572,6 +884,10 @@
 
         .modalBody
             padding: 24px
+            +m
+                padding: 20px
+            +a
+                padding: 16px
 
             .poolInfoBanner
                 background: linear-gradient(135deg, rgba($p1, 0.1) 0%, rgba($p2, 0.05) 100%)
@@ -584,11 +900,21 @@
                 align-items: center
                 +dark
                     background: linear-gradient(135deg, rgba($p1, 0.15) 0%, rgba($p2, 0.1) 100%)
+                +m
+                    flex-direction: column
+                    gap: 12px
+                    align-items: flex-start
+                    padding: 14px
+                +a
+                    padding: 12px
+                    gap: 10px
 
                 .poolPairLarge
                     display: flex
                     align-items: center
                     gap: 12px
+                    +a
+                        gap: 10px
 
                     .tokenLogoLarge
                         width: 40px
@@ -602,9 +928,15 @@
                         font-size: 24px
                         +dark
                             background: $n3
+                        +a
+                            width: 36px
+                            height: 36px
+                            font-size: 20px
 
                         &:nth-child(2)
                             margin-left: -16px
+                            +a
+                                margin-left: -14px
 
                     .pairText
                         font-size: 18px
@@ -612,10 +944,17 @@
                         color: $n2
                         +dark
                             color: $n8
+                        +a
+                            font-size: 16px
 
                 .poolStatsInline
                     display: flex
                     gap: 16px
+                    +m
+                        width: 100%
+                        justify-content: space-between
+                    +a
+                        gap: 12px
 
                     .statInline
                         .label
@@ -624,12 +963,16 @@
                             margin-right: 4px
                             +dark
                                 color: $n5
+                            +a
+                                font-size: 11px
 
                         .value
                             font-weight: 600
                             color: $n2
                             +dark
                                 color: $n8
+                            +a
+                                font-size: 14px
 
                             &.apr
                                 color: $p4
@@ -637,6 +980,8 @@
             .inputGroup
                 position: relative
                 margin-bottom: 16px
+                +a
+                    margin-bottom: 14px
 
                 .inputHeader
                     display: flex
@@ -650,12 +995,16 @@
                         color: $n4
                         +dark
                             color: $n5
+                        +a
+                            font-size: 13px
 
                     .balance
                         font-size: 12px
                         color: $n4
                         +dark
                             color: $n5
+                        +a
+                            font-size: 11px
 
                 .inputWrapper
                     position: relative
@@ -669,6 +1018,9 @@
                     +dark
                         background: $n3
                         border-color: $n4
+                    +a
+                        padding: 12px
+                        border-radius: 10px
 
                     &:focus-within
                         border-color: $p1
@@ -684,8 +1036,12 @@
                         outline: none
                         +dark
                             color: $n8
+                        +m
+                            font-size: 18px
+                        +a
+                            font-size: 16px
 
-                        &::placeholder
+                        +placeholder
                             color: $n4
                             +dark
                                 color: $n5
@@ -704,8 +1060,12 @@
                         border-radius: 8px
                         cursor: pointer
                         transition: all 0.2s ease
+                        flex-shrink: 0
                         +dark
                             background: $n2
+                        +a
+                            padding: 6px 10px
+                            gap: 6px
 
                         &:hover
                             background: $n6
@@ -720,12 +1080,18 @@
                             align-items: center
                             justify-content: center
                             font-size: 14px
+                            +a
+                                width: 20px
+                                height: 20px
+                                font-size: 12px
 
                         .tokenSymbol
                             font-weight: 600
                             color: $n2
                             +dark
                                 color: $n8
+                            +a
+                                font-size: 13px
 
                 .maxBtn
                     position: absolute
@@ -741,6 +1107,10 @@
                     font-weight: 700
                     cursor: pointer
                     transition: all 0.2s ease
+                    +a
+                        right: 100px
+                        padding: 5px 10px
+                        font-size: 11px
 
                     &:hover
                         background: rgba($p1, 0.25)
@@ -749,6 +1119,8 @@
                 display: flex
                 justify-content: center
                 margin: 8px 0
+                +a
+                    margin: 6px 0
 
                 .plusIcon
                     width: 36px
@@ -766,6 +1138,10 @@
                         background: $n3
                         border-color: $n4
                         color: $n5
+                    +a
+                        width: 32px
+                        height: 32px
+                        font-size: 18px
 
             .settingsSection
                 margin: 24px 0
@@ -776,6 +1152,12 @@
                 +dark
                     background: $n3
                     border-color: $n4
+                +m
+                    margin: 20px 0
+                    padding: 14px
+                +a
+                    margin: 16px 0
+                    padding: 12px
 
                 .settingHeader
                     display: flex
@@ -787,6 +1169,9 @@
                     color: $n4
                     +dark
                         color: $n5
+                    +a
+                        font-size: 13px
+                        margin-bottom: 10px
 
                     .settingValue
                         color: $p1
@@ -794,6 +1179,8 @@
                 .slippageOptions
                     display: flex
                     gap: 8px
+                    +a
+                        gap: 6px
 
                     .slippageBtn
                         flex: 1
@@ -810,6 +1197,9 @@
                             background: $n2
                             border-color: $n4
                             color: $n5
+                        +a
+                            padding: 8px
+                            font-size: 12px
 
                         &:hover
                             border-color: $p1
@@ -837,125 +1227,78 @@
                             background: $n2
                             border-color: $n4
                             color: $n8
+                        +a
+                            padding: 8px
+                            font-size: 12px
 
                         &:focus
                             border-color: $p1
 
-                        &::placeholder
-                            color: $n4
-                            +dark
-                                color: $n5
-
-            .priceInfo
-                padding: 16px
-                background: $n7
-                border: 1px solid $n6
-                border-radius: 12px
-                margin: 16px 0
-                +dark
-                    background: $n3
-                    border-color: $n4
-
-                .infoRow
-                    display: flex
-                    justify-content: space-between
-                    align-items: center
-                    padding: 8px 0
-                    font-size: 14px
-
-                    &:not(:last-child)
-                        border-bottom: 1px solid $n6
-                        +dark
-                            border-color: $n4
-
-                    span:first-child
+                    +placeholder
                         color: $n4
                         +dark
                             color: $n5
 
-                    span:last-child
-                        color: $n2
-                        font-weight: 600
-                        +dark
-                            color: $n8
+        .priceInfo
+            padding: 16px
+            background: $n7
+            border: 1px solid $n6
+            border-radius: 12px
+            margin: 16px 0
+            +dark
+                background: $n3
+                border-color: $n4
+            +a
+                padding: 12px
+                margin: 14px 0
 
-            .modalActions
+            .infoRow
                 display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 8px 0
+                font-size: 14px
                 gap: 12px
-                margin-top: 24px
+                +a
+                    padding: 6px 0
+                    font-size: 13px
+                    gap: 8px
 
-                button
-                    flex: 1
+                &:not(:last-child)
+                    border-bottom: 1px solid $n6
+                    +dark
+                        border-color: $n4
 
-    .tokenLogo img,
-    .tokenLogoLarge img
-        width: 100%
-        height: 100%
-        object-fit: contain
-        border-radius: 50%
+                span:first-child
+                    color: $n4
+                    flex-shrink: 0
+                    +dark
+                        color: $n5
 
-// ============================================================================
-// RESPONSIVE
-// ============================================================================
-+t
-    .poolsPage
-        .statsHeader
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))
+                span:last-child
+                    color: $n2
+                    font-weight: 600
+                    text-align: right
+                    word-break: break-word
+                    +dark
+                        color: $n8
 
-        .poolsContainer
-            .poolsHeader
-                flex-direction: column
-                align-items: flex-start
-                gap: 16px
+        .modalActions
+            display: flex
+            gap: 12px
+            margin-top: 24px
+            +m
+                margin-top: 20px
+            +a
+                gap: 10px
+                margin-top: 16px
 
-+m
-    .poolsPage
-        padding: 20px 16px
+            button
+                flex: 1
 
-        .statsHeader
-            grid-template-columns: 1fr
-
-            .statCard
-                .statValue
-                    font-size: 24px
-
-        .poolsContainer
-            padding: 20px
-
-            .controls
-                flex-direction: column
-                align-items: stretch
-
-                .searchBox
-                    max-width: none
-
-            .tableContainer
-                .poolsTable
-                    thead
-                        display: none
-
-                    tbody
-                        tr
-                            display: flex
-                            flex-direction: column
-                            padding: 16px
-                            gap: 12px
-                            border: 1px solid $n6
-                            border-radius: 12px
-                            margin-bottom: 12px
-                            +dark
-                                border-color: $n3
-
-                            td
-                                padding: 0
-                                display: flex
-                                justify-content: space-between
-                                align-items: center
-
-                                &.poolActions
-                                    justify-content: flex-end
-
-    .modal
-        max-width: 100% !important
-        margin: 0 !important
-        border-radius: 16px 16px 0 0 !important
+.tokenLogo img,
+.tokenLogoLarge img
+    width: 100%
+    height: 100%
+    object-fit: contain
+    border-radius: 50%
