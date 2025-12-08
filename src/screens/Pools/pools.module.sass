@@ -16,6 +16,12 @@
         padding: 24px 16px
     +a
         padding: 20px 12px
+    
+    // Fix for screens less than 360px
+    @media (max-width: 360px)
+        max-width: 100%
+        padding: 16px 8px
+        overflow-x: hidden
 
     // Stats Header
     .statsHeader
@@ -34,6 +40,12 @@
         +a
             gap: 12px
             margin-bottom: 24px
+        
+        // Fix for screens less than 360px
+        @media (max-width: 360px)
+            grid-template-columns: 1fr
+            gap: 10px
+            margin-bottom: 20px
 
         .statCard
             background: $n8
@@ -127,6 +139,12 @@
         +a
             padding: 16px
             border-radius: 12px
+        
+        // Fix for screens less than 360px
+        @media (max-width: 360px)
+            max-width: 100%
+            padding: 12px
+            overflow-x: hidden
 
         .poolsHeader
             display: flex
@@ -365,8 +383,12 @@
                             border-radius: 12px
                             margin-bottom: 12px
                             cursor: default
+                            background: linear-gradient(135deg, rgba($n7, 0.5) 0%, rgba($n6, 0.3) 100%)
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05)
                             +dark
                                 border-color: $n3
+                                background: linear-gradient(135deg, rgba($n3, 0.5) 0%, rgba($n4, 0.3) 100%)
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
                         +a
                             padding: 12px
                             gap: 10px
@@ -376,12 +398,22 @@
                             +dark
                                 background: $n3
                             +m
-                                background: transparent
+                                background: linear-gradient(135deg, rgba($n6, 0.7) 0%, rgba($n5, 0.5) 100%)
+                                transform: translateY(-2px)
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08)
+                                +dark
+                                    background: linear-gradient(135deg, rgba($n4, 0.7) 0%, rgba($n3, 0.5) 100%)
+                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4)
 
                         &.myLiquidity
                             background: rgba($p1, 0.05)
                             +dark
                                 background: rgba($p1, 0.1)
+                            +m
+                                background: linear-gradient(135deg, rgba($p1, 0.15) 0%, rgba($p2, 0.08) 100%)
+                                border: 1px solid rgba($p1, 0.3)
+                                +dark
+                                    background: linear-gradient(135deg, rgba($p1, 0.2) 0%, rgba($p2, 0.12) 100%)
 
                         &:last-child
                             border-bottom: none
@@ -407,10 +439,17 @@
                                 content: attr(data-label)
                                 font-weight: 600
                                 color: $n4
+                                font-size: 12px
+                                text-transform: uppercase
+                                letter-spacing: 0.5px
+                                min-width: 100px
                                 +dark
                                     color: $n5
                         +a
                             font-size: 13px
+                            &::before
+                                font-size: 11px
+                                min-width: 90px
 
                         &.poolRank
                             color: $n4
@@ -426,7 +465,13 @@
                         &.poolPair
                             +m
                                 &::before
-                                    content: ''
+                                    content: 'Pool'
+                                align-items: flex-start
+                                padding-bottom: 12px
+                                border-bottom: 1px solid $n6
+                                +dark
+                                    border-color: $n4
+                            
                             .tokenLogos
                                 display: inline-flex
                                 margin-right: 12px
@@ -435,6 +480,7 @@
                                     margin-right: 8px
                                 +m
                                     margin-right: 0
+                                    margin-bottom: 8px
 
                                 .tokenLogo
                                     width: 32px
@@ -468,6 +514,10 @@
                             .pairInfo
                                 display: inline-block
                                 vertical-align: middle
+                                +m
+                                    display: flex
+                                    flex-direction: column
+                                    gap: 4px
 
                                 .pairSymbols
                                     font-weight: 600
@@ -479,6 +529,8 @@
                                         font-size: 13px
                                     +a
                                         font-size: 14px
+                                    +m
+                                        margin-bottom: 2px
 
                                 .pairNames
                                     font-size: 12px
@@ -490,12 +542,40 @@
                                     +a
                                         font-size: 11px
 
-                        &.poolTvl,
-                        &.poolVolume,
+                        &.poolTvl
+                            +m
+                                &::before
+                                    content: 'TVL'
+                            .value
+                                font-weight: 600
+                                color: $n2
+                                +dark
+                                    color: $n8
+                                +t
+                                    font-size: 13px
+
+                        &.poolVolume
+                            .value
+                                font-weight: 600
+                                color: $n2
+                                +dark
+                                    color: $n8
+                                +t
+                                    font-size: 13px
+
+                        &.volume24h
+                            +m
+                                &::before
+                                    content: '24h Volume'
+
+                        &.volume7d
+                            +m
+                                &::before
+                                    content: '7d Volume'                                
                         &.poolFees
                             +m
                                 &::before
-                                    content: attr(data-label)
+                                    content: '24h Fees'
                             .value
                                 font-weight: 600
                                 color: $n2
@@ -566,8 +646,13 @@
                             text-align: right
                             +m
                                 justify-content: flex-end
+                                padding-top: 12px
+                                border-top: 1px solid $n6
+                                +dark
+                                    border-color: $n4
                                 &::before
                                     content: ''
+                            
                             .btnAction
                                 padding: 8px 16px
                                 border: none
@@ -587,10 +672,28 @@
                                 +a
                                     padding: 6px 12px
                                     font-size: 12px
+                                    margin-right: 6px
+                                
+                                // Fix for button alignment issues in medium screens
+                                @media (min-width: 768px) and (max-width: 890px)
+                                    margin-top: 4px
+                                    margin-right: 8px
+                                
+                                @media (min-width: 1023px) and (max-width: 1160px)
+                                    margin-top: 4px
+                                    margin-right: 8px
+                                
+                                &:last-child
+                                    margin-right: 0
 
                                 &.btnAdd
                                     background: $p1
                                     color: $white
+                                    min-width: 70px
+                                    @media (min-width: 768px) and (max-width: 890px)
+                                        min-width: 80px
+                                    @media (min-width: 1023px) and (max-width: 1160px)
+                                        min-width: 80px
 
                                     &:hover
                                         background: darken($p1, 5%)
@@ -601,6 +704,11 @@
                                     background: transparent
                                     color: $p3
                                     border: 1px solid $p3
+                                    min-width: 70px
+                                    @media (min-width: 768px) and (max-width: 890px)
+                                        min-width: 80px
+                                    @media (min-width: 1023px) and (max-width: 1160px)
+                                        min-width: 80px
 
                                     &:hover
                                         background: rgba($p3, 0.1)
@@ -819,6 +927,10 @@
             max-height: 95vh
         +a
             border-radius: 16px 16px 0 0
+        
+        // Fix for screens less than 360px
+        @media (max-width: 360px)
+            max-width: 100%
 
         @keyframes slideUp
             from
@@ -1021,6 +1133,11 @@
                     +a
                         padding: 12px
                         border-radius: 10px
+                    
+                    // Fix for small screens - tokenSelect overflow
+                    @media (max-width: 380px)
+                        flex-wrap: wrap
+                        gap: 8px
 
                     &:focus-within
                         border-color: $p1
@@ -1034,12 +1151,17 @@
                         font-size: 20px
                         font-weight: 600
                         outline: none
+                        min-width: 0
                         +dark
                             color: $n8
                         +m
                             font-size: 18px
                         +a
                             font-size: 16px
+                        
+                        @media (max-width: 380px)
+                            width: 100%
+                            font-size: 14px
 
                         +placeholder
                             color: $n4
@@ -1066,6 +1188,10 @@
                         +a
                             padding: 6px 10px
                             gap: 6px
+                        
+                        @media (max-width: 380px)
+                            width: 100%
+                            justify-content: center
 
                         &:hover
                             background: $n6
@@ -1092,6 +1218,9 @@
                                 color: $n8
                             +a
                                 font-size: 13px
+                            
+                            @media (max-width: 380px)
+                                font-size: 12px
 
                 .maxBtn
                     position: absolute
@@ -1107,10 +1236,17 @@
                     font-weight: 700
                     cursor: pointer
                     transition: all 0.2s ease
+                    z-index: 1
                     +a
                         right: 100px
                         padding: 5px 10px
                         font-size: 11px
+                    
+                    @media (max-width: 380px)
+                        position: static
+                        transform: none
+                        width: 100%
+                        margin-top: 8px
 
                     &:hover
                         background: rgba($p1, 0.25)
@@ -1179,11 +1315,13 @@
                 .slippageOptions
                     display: flex
                     gap: 8px
+                    flex-wrap: wrap
                     +a
                         gap: 6px
 
                     .slippageBtn
                         flex: 1
+                        min-width: 60px
                         padding: 10px
                         background: $n8
                         border: 1px solid $n6
@@ -1200,6 +1338,9 @@
                         +a
                             padding: 8px
                             font-size: 12px
+                        
+                        @media (max-width: 380px)
+                            min-width: 55px
 
                         &:hover
                             border-color: $p1
@@ -1214,6 +1355,7 @@
 
                     .customSlippage
                         flex: 1
+                        min-width: 60px
                         padding: 10px
                         background: $n8
                         border: 1px solid $n6
@@ -1230,6 +1372,11 @@
                         +a
                             padding: 8px
                             font-size: 12px
+                        
+                        // Fix for small screens - custom slippage overflow
+                        @media (max-width: 380px)
+                            flex-basis: 100%
+                            min-width: 100%
 
                         &:focus
                             border-color: $p1

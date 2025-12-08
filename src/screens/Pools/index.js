@@ -1084,12 +1084,12 @@ const PoolsPage = () => {
                       {formatCurrency(pool.tvl)}
                     </div>
                   </td>
-                  <td className={styles.poolVolume}>
+                  <td className={cn(styles.poolVolume, styles.volume24h)}>
                     <div className={styles.value}>
                       {formatCurrency(pool.volume24h)}
                     </div>
                   </td>
-                  <td className={styles.poolVolume}>
+                  <td className={cn(styles.poolVolume, styles.volume7d)}>
                     <div className={styles.value}>
                       {formatCurrency(pool.volume7d)}
                     </div>
