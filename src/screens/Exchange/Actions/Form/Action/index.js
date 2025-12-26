@@ -1,23 +1,185 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import cn from "classnames";
 import styles from "./Action.module.sass";
 import { Range, getTrackBackground } from "react-range";
+import { JsonRpc } from "eosjs";
+import { useWallet } from "../../../../../context/WalletContext";
+import { useTokenBalance } from "../../../../../context/WalletBalance";
 import Icon from "../../../../../components/Icon";
 
 const Action = ({
   title,
   content,
-  price,
-  stop,
-  limit,
+  price: showPrice,
+  stop: showStop,
+  limit: showLimit,
   classButton,
   buttonText,
+  orderType, // "limit", "stop-limit", "market"
+  side, // "buy" or "sell"
 }) => {
-  const [values, setValues] = useState([10]);
+  // const [userBalance, setUserBalance] = useState([]);
+  const [values, setValues] = useState([5]);
 
-  const stepPrice = 10;
+  const [price, setPrice] = useState("");
+  const [stopPrice, setStopPrice] = useState("");
+  const [limitPrice, setLimitPrice] = useState("");
+  const [amount, setAmount] = useState("");
+  const [total, setTotal] = useState("");
+
+  const stepPrice = 5;
   const minPrice = 0;
   const maxPrice = 100;
+
+  const { activeSession, walletConnected, connectWallet } = useWallet();
+  const { userBalance, loadingTokens, refetchTokens } = useTokenBalance();
+  const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+
+  console.log('u', userBalance);
+
+  useEffect(() => {
+    if (orderType === "limit" && price && amount) {
+      const priceValue = parseFloat(price);
+      const amountValue = parseFloat(amount);
+
+      if (!isNaN(priceValue) && !isNaN(amountValue)) {
+        const totalValue = priceValue * amountValue;
+        setTotal(totalValue.toFixed(5));
+      }
+    } else if (orderType === "stop-limit" && limitPrice && amount) {
+      const limitValue = parseFloat(limitPrice);
+      const amountValue = parseFloat(amount);
+
+      if (!isNaN(limitValue) && !isNaN(amountValue)) {
+        const totalValue = limitValue * amountValue;
+        setTotal(totalValue.toFixed(5));
+      }
+    }
+  }, [price, limitPrice, amount, orderType]);
+
+  const handleSubmit = () => {
+    let formData = {
+      orderType: orderType,
+      side: side,
+    };
+
+    if (orderType === "limit") {
+      formData = {
+        ...formData,
+        price: price,
+        amount: amount,
+        total: total,
+      };
+
+      if (!price || !amount) {
+        return alert("Please fill in all fields");
+      }
+    } else if (orderType === "stop-limit") {
+      formData = {
+        ...formData,
+        stopPrice: stopPrice,
+        limitPrice: limitPrice,
+        amount: amount,
+        total: total,
+      };
+
+      if (!stopPrice || !limitPrice || !amount) {
+        return alert("Please fill in all fields");
+      }
+    } else if (orderType === "market") {
+      if (side === "buy") {
+        formData = {
+          ...formData,
+          total: total, // For market buy, user specifies quote amount
+        };
+
+        if (!total) {
+          return alert("Please fill in total amount");
+        }
+      } else {
+        formData = {
+          ...formData,
+          amount: amount, // For market sell, user specifies base amount
+        };
+
+        if (!amount) {
+          return alert("Please fill in amount");
+        }
+      }
+    }
+
+    const displayData = formatData(formData);
+
+    alert(displayData);
+
+    console.log("Form Data:", formData);
+  };
+
+  const formatData = (data) => {
+    let output = `📋 ORDER DATA FOR SMART CONTRACT\n`;
+    output += `${"=".repeat(40)}\n\n`;
+
+    output += `Order Type: ${data.orderType?.toUpperCase()}\n`;
+    output += `Side: ${data.side?.toUpperCase()}\n\n`;
+
+    if (data.orderType === "limit") {
+      output += `🎯 LIMIT ORDER PARAMETERS:\n`;
+      output += `- Price: ${data.price} XMD\n`;
+      output += `- Amount: ${data.amount} XPR\n`;
+      output += `- Total: ${data.total} XMD\n\n`;
+
+      output += `📞 Smart Contract Action:\n`;
+      output += `Action: limitorder\n`;
+      output += `Parameters:\n`;
+      output += `  user: "your_username"\n`;
+      output += `  pair_id: 0\n`;
+      output += `  side: "${data.side}"\n`;
+      output += `  price: "${data.price} XMD"\n`;
+      output += `  amount: "${data.amount} XPR"\n`;
+    } else if (data.orderType === "stop-limit") {
+      output += `🛑 STOP-LIMIT ORDER PARAMETERS:\n`;
+      output += `- Stop Price (Trigger): ${data.stopPrice} XMD\n`;
+      output += `- Limit Price: ${data.limitPrice} XMD\n`;
+      output += `- Amount: ${data.amount} XPR\n`;
+      output += `- Total: ${data.total} XMD\n\n`;
+
+      output += `📞 Smart Contract Action:\n`;
+      output += `Action: stoploss\n`;
+      output += `Parameters:\n`;
+      output += `  user: "your_username"\n`;
+      output += `  pair_id: 0\n`;
+      output += `  side: "${data.side}"\n`;
+      output += `  trigger_price: "${data.stopPrice} XMD"\n`;
+      output += `  limit_price: "${data.limitPrice} XMD"\n`;
+      output += `  amount: "${data.amount} XPR"\n`;
+    } else if (data.orderType === "market") {
+      output += `⚡ MARKET ORDER PARAMETERS:\n`;
+
+      if (data.side === "buy") {
+        output += `- Amount to Spend: ${data.total} XMD\n\n`;
+
+        output += `📞 Smart Contract Action:\n`;
+        output += `Action: marketorder\n`;
+        output += `Parameters:\n`;
+        output += `  user: "your_username"\n`;
+        output += `  pair_id: 0\n`;
+        output += `  side: "buy"\n`;
+        output += `  amount: "${data.total} XMD" (quote currency)\n`;
+      } else {
+        output += `- Amount to Sell: ${data.amount} XPR\n\n`;
+
+        output += `📞 Smart Contract Action:\n`;
+        output += `Action: marketorder\n`;
+        output += `Parameters:\n`;
+        output += `  user: "your_username"\n`;
+        output += `  pair_id: 0\n`;
+        output += `  side: "sell"\n`;
+        output += `  amount: "${data.amount} XPR" (base currency)\n`;
+      }
+    }
+
+    return output;
+  };
 
   return (
     <>
@@ -27,30 +189,58 @@ const Action = ({
           <Icon name="wallet" size="16" /> {content}
         </div>
       </div>
-      {price && (
+      {showPrice && (
         <label className={styles.field}>
           <div className={styles.label}>Price</div>
-          <input className={styles.input} type="text" name="price" required />
+          <input
+            className={styles.input}
+            type="number"
+            name="price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
           <div className={styles.currency}>USDT</div>
         </label>
       )}
-      {stop && (
+      {showStop && (
         <label className={styles.field}>
           <div className={styles.label}>Stop</div>
-          <input className={styles.input} type="text" name="stop" required />
+          <input
+            className={styles.input}
+            type="number"
+            name="stop"
+            value={stopPrice}
+            onChange={(e) => setStopPrice(e.target.value)}
+            required
+          />
           <div className={styles.currency}>BTC</div>
         </label>
       )}
-      {limit && (
+      {showLimit && (
         <label className={styles.field}>
           <div className={styles.label}>Limit</div>
-          <input className={styles.input} type="text" name="limit" required />
+          <input
+            className={styles.input}
+            type="number"
+            name="limit"
+            value={limitPrice}
+            onChange={(e) => setLimitPrice(e.target.value)}
+            required
+          />
           <div className={styles.currency}>USDT</div>
         </label>
       )}
       <label className={styles.field}>
         <div className={styles.label}>Amount</div>
-        <input className={styles.input} type="text" name="amount" required />
+        <input
+          className={styles.input}
+          type="number"
+          name="amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+        />
         <div className={styles.currency}>BTC</div>
       </label>
       <Range
@@ -140,10 +330,19 @@ const Action = ({
       />
       <label className={styles.field}>
         <div className={styles.label}>Total</div>
-        <input className={styles.input} type="text" name="total" required />
+        <input
+          className={styles.input}
+          type="number"
+          name="total"
+          value={total}
+          onChange={(e) => setTotal(e.target.value)}
+          required
+        />
         <div className={styles.currency}>BTC</div>
       </label>
-      <button className={cn(classButton, styles.button)}>{buttonText}</button>
+      <button className={cn(classButton, styles.button)} onClick={handleSubmit}>
+        {buttonText}
+      </button>
     </>
   );
 };

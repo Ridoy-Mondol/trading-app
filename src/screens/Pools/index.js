@@ -6,6 +6,7 @@ import RemoveLiquidityModal from "../../components/RemLiquidity";
 import cn from "classnames";
 import { JsonRpc } from "eosjs";
 import { useWallet } from "../../context/WalletContext";
+import { useTokenBalance } from "../../context/WalletBalance";
 import { useTokens } from "../../hooks/useTokens";
 
 const PoolsPage = () => {
@@ -20,7 +21,6 @@ const PoolsPage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [userLiquidity, setUserLiquidity] = useState([]);
   const [config, setConfig] = useState(null);
-  const [userBalance, setUserBalance] = useState([]);
 
   // Add liquidity form state
   const [token0, setToken0] = useState(null);
@@ -32,6 +32,7 @@ const PoolsPage = () => {
   const [showCreatePool, setShowCreatePool] = useState(false);
 
   const { activeSession, walletConnected, connectWallet } = useWallet();
+  const { userBalance, loadingTokens, refetchTokens } = useTokenBalance();
   const { data: allTokens = [], isLoading } = useTokens();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
   const navigate = useNavigate();
@@ -276,70 +277,6 @@ const PoolsPage = () => {
     }
   };
 
-  // Fetch all user token balances
-  const fetchAllTokens = async () => {
-    if (!activeSession?.auth?.actor) {
-      setUserBalance([]);
-      return;
-    }
-
-    try {
-      const accountName = activeSession.auth.actor.toString();
-      const isTestnet = process.env.REACT_APP_NETWORK === "testnet";
-
-      if (isTestnet) {
-        const contracts = [
-          "xtokens",
-          "eosio.token",
-          "snipx",
-          "loan.token",
-          "xmd.token",
-        ];
-
-        const allBalances = [];
-
-        for (const contract of contracts) {
-          try {
-            const balances = await rpc.get_currency_balance(
-              contract,
-              accountName
-            );
-
-            balances.forEach((str) => {
-              const [amount, symbol] = str.split(" ");
-              allBalances.push({
-                symbol,
-                amount: parseFloat(amount),
-                contract,
-              });
-            });
-          } catch (error) {
-            console.error(`Failed to fetch from ${contract}:`, error);
-          }
-        }
-
-        setUserBalance(allBalances);
-        console.log("User balances loaded:", allBalances);
-      } else {
-        const response = await fetch(
-          `https://proton.eosusa.io/v2/state/get_tokens?account=${accountName}`
-        );
-        const data = await response.json();
-        setUserBalance(
-          data.tokens.map((t) => ({
-            symbol: t.symbol,
-            amount: t.amount,
-            contract: t.contract,
-          }))
-        );
-        console.log("User balances loaded:", data.tokens);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user balances:", error);
-      setUserBalance([]);
-    }
-  };
-
   // Fetch liquidity from blockchain
   const fetchLiquidity = async () => {
     if (!walletConnected || !activeSession) {
@@ -496,10 +433,8 @@ const PoolsPage = () => {
   useEffect(() => {
     if (walletConnected && activeSession) {
       fetchLiquidity();
-      fetchAllTokens();
     } else {
       setUserLiquidity([]);
-      setUserBalance([]);
     }
   }, [walletConnected, activeSession]);
 
@@ -865,7 +800,7 @@ const PoolsPage = () => {
       setLoading(false);
 
       await fetchLiquidity();
-      await fetchAllTokens();
+      await refetchTokens();
       await fetchPools();
     } catch (e) {
       console.error("❌ Transaction failed:", e);

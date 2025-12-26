@@ -6,6 +6,7 @@ import Icon from "../../../components/Icon";
 import Form from "./Form";
 
 const navigation = ["Limit", "Stop-limit", "Market"];
+const orderTypes = ["limit", "stop-limit", "market"];
 
 const Actions = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -50,28 +51,31 @@ const Actions = () => {
           <Form
             contentBuy="10,098.36 USDT"
             contentSell="1.0356875565 BTC"
-            price
+            price={true}
             visible={visibleAction}
             setValue={setVisible}
+            orderType={orderTypes[0]}
           />
         )}
         {activeIndex === 1 && (
           <Form
             contentBuy="10,098.36 USDT"
             contentSell="1.0356875565 BTC"
-            stop
-            limit
+            stop={true}
+            limit={true}
             visible={visibleAction}
             setValue={setVisible}
+            orderType={orderTypes[1]}
           />
         )}
         {activeIndex === 2 && (
           <Form
             contentBuy="USDT"
             contentSell="BTC"
-            limit
+            limit={true}
             visible={visibleAction}
             setValue={setVisible}
+            orderType={orderTypes[2]}
           />
         )}
       </div>
