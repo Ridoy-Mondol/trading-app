@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { act, memo, useEffect, useState } from "react";
 import cn from "classnames";
 import styles from "./Action.module.sass";
 import { Range, getTrackBackground } from "react-range";
@@ -6,6 +6,7 @@ import { JsonRpc } from "eosjs";
 import { useWallet } from "../../../../../context/WalletContext";
 import { useTokenBalance } from "../../../../../context/WalletBalance";
 import Icon from "../../../../../components/Icon";
+import { signatureDataSize } from "eosjs/dist/eosjs-numeric";
 
 const Action = ({
   title,
@@ -20,6 +21,7 @@ const Action = ({
 }) => {
   // const [userBalance, setUserBalance] = useState([]);
   const [values, setValues] = useState([5]);
+  const [loading, setLoading] = useState(false);
 
   const [price, setPrice] = useState("");
   const [stopPrice, setStopPrice] = useState("");
@@ -34,8 +36,6 @@ const Action = ({
   const { activeSession, walletConnected, connectWallet } = useWallet();
   const { userBalance, loadingTokens, refetchTokens } = useTokenBalance();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
-
-  console.log('u', userBalance);
 
   useEffect(() => {
     if (orderType === "limit" && price && amount) {
@@ -57,128 +57,294 @@ const Action = ({
     }
   }, [price, limitPrice, amount, orderType]);
 
-  const handleSubmit = () => {
-    let formData = {
-      orderType: orderType,
-      side: side,
-    };
+  const TOKEN_XBTC = {
+    contract: "xtokens",
+    symbol: "XBTC",
+    precision: 8,
+  };
+
+  const TOKEN_XUSDT = {
+    contract: "xtokens",
+    symbol: "XUSDT",
+    precision: 6,
+  };
+
+  const DEX_CONTRACT = "orderbook";
+  const PAIR_ID = 0;
+  const BASE_TOKEN = TOKEN_XBTC;
+  const QUOTE_TOKEN = TOKEN_XUSDT;
+
+  const formatAsset = (amount, precision, symbol) => {
+    const value = parseFloat(amount).toFixed(precision);
+    return `${value} ${symbol}`;
+  };
+
+  const handleSubmit = async () => {
+    if (!walletConnected) {
+      connectWallet();
+      return;
+    }
 
     if (orderType === "limit") {
-      formData = {
-        ...formData,
-        price: price,
-        amount: amount,
-        total: total,
-      };
-
       if (!price || !amount) {
         return alert("Please fill in all fields");
       }
-    } else if (orderType === "stop-limit") {
-      formData = {
-        ...formData,
-        stopPrice: stopPrice,
-        limitPrice: limitPrice,
-        amount: amount,
-        total: total,
-      };
 
+      const amountValue = parseFloat(amount);
+      if (amountValue < 0.00000001) {
+        return alert(`Amount must be at least 0.00000001 ${BASE_TOKEN.symbol}`);
+      }
+      if (amountValue > 100) {
+        return alert(`Amount cannot exceed 100 ${BASE_TOKEN.symbol}`);
+      }
+
+      // Validate tick size
+      const priceValue = parseFloat(price);
+      const tickSize = 0.001;
+      if ((priceValue * 1000) % (tickSize * 1000) !== 0) {
+        return alert(
+          `Price must be a multiple of ${tickSize} ${QUOTE_TOKEN.symbol}`
+        );
+      }
+    } else if (orderType === "stop-limit") {
       if (!stopPrice || !limitPrice || !amount) {
         return alert("Please fill in all fields");
       }
+
+      const amountValue = parseFloat(amount);
+      if (amountValue < 0.00000001 || amountValue > 100) {
+        return alert(
+          `Amount must be between 0.00000001 and 100 ${BASE_TOKEN.symbol}`
+        );
+      }
+
+      const stopValue = parseFloat(stopPrice);
+      const limitValue = parseFloat(limitPrice);
+      const tickSize = 0.001;
+
+      if ((stopValue * 1000) % (tickSize * 1000) !== 0) {
+        return alert(
+          `Stop price must be a multiple of ${tickSize} ${QUOTE_TOKEN.symbol}`
+        );
+      }
+      if ((limitValue * 1000) % (tickSize * 1000) !== 0) {
+        return alert(
+          `Limit price must be a multiple of ${tickSize} ${QUOTE_TOKEN.symbol}`
+        );
+      }
     } else if (orderType === "market") {
+      if (side === "buy" && !total) {
+        return alert("Please fill in Total amount to spend");
+      }
+      if (side === "sell" && !amount) {
+        return alert("Please fill in Amount to sell");
+      }
+
+      if (side === "sell") {
+        const amountValue = parseFloat(amount);
+        if (amountValue < 0.00000001 || amountValue > 100) {
+          return alert(
+            `Amount must be between 0.00000001 and 100 ${BASE_TOKEN.symbol}`
+          );
+        }
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      const actions = [];
+
+      // Determine which token to deposit based on side
+      const depositToken = side === "buy" ? QUOTE_TOKEN : BASE_TOKEN;
+      let depositAmount;
+
       if (side === "buy") {
-        formData = {
-          ...formData,
-          total: total, // For market buy, user specifies quote amount
-        };
-
-        if (!total) {
-          return alert("Please fill in total amount");
-        }
+        // For buy orders, deposit quote currency
+        depositAmount = orderType === "market" ? total : total;
       } else {
-        formData = {
-          ...formData,
-          amount: amount, // For market sell, user specifies base amount
-        };
+        // For sell orders, deposit base currency
+        depositAmount = amount;
+      }
 
-        if (!amount) {
-          return alert("Please fill in amount");
+      // ACTION 1: Deposit token to DEX
+      actions.push({
+        account: depositToken.contract,
+        name: "transfer",
+        authorization: [
+          {
+            actor: activeSession.auth.actor.toString(),
+            permission: activeSession.auth.permission.toString(),
+          },
+        ],
+        data: {
+          from: activeSession.auth.actor.toString(),
+          to: DEX_CONTRACT,
+          quantity: formatAsset(
+            depositAmount,
+            depositToken.precision,
+            depositToken.symbol
+          ),
+          memo: "deposit",
+        },
+      });
+
+      // ACTION 2: Place order based on type
+      if (orderType === "limit") {
+        actions.push({
+          account: DEX_CONTRACT,
+          name: "limitorder",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            user: activeSession.auth.actor.toString(),
+            pair_id: PAIR_ID,
+            side: side,
+            price: formatAsset(
+              price,
+              QUOTE_TOKEN.precision,
+              QUOTE_TOKEN.symbol
+            ),
+            amount: formatAsset(
+              amount,
+              BASE_TOKEN.precision,
+              BASE_TOKEN.symbol
+            ),
+          },
+        });
+      } else if (orderType === "stop-limit") {
+        actions.push({
+          account: DEX_CONTRACT,
+          name: "stoploss",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            user: activeSession.auth.actor.toString(),
+            pair_id: PAIR_ID,
+            side: side,
+            trigger_price: formatAsset(
+              stopPrice,
+              QUOTE_TOKEN.precision,
+              QUOTE_TOKEN.symbol
+            ),
+            limit_price: formatAsset(
+              limitPrice,
+              QUOTE_TOKEN.precision,
+              QUOTE_TOKEN.symbol
+            ),
+            amount: formatAsset(
+              amount,
+              BASE_TOKEN.precision,
+              BASE_TOKEN.symbol
+            ),
+          },
+        });
+      } else if (orderType === "market") {
+        const marketAmount =
+          side === "buy"
+            ? formatAsset(total, QUOTE_TOKEN.precision, QUOTE_TOKEN.symbol)
+            : formatAsset(amount, BASE_TOKEN.precision, BASE_TOKEN.symbol);
+
+        actions.push({
+          account: DEX_CONTRACT,
+          name: "marketorder",
+          authorization: [
+            {
+              actor: activeSession.auth.actor.toString(),
+              permission: activeSession.auth.permission.toString(),
+            },
+          ],
+          data: {
+            user: activeSession.auth.actor.toString(),
+            pair_id: PAIR_ID,
+            side: side,
+            amount: marketAmount,
+          },
+        });
+      }
+
+      // ACTION 3: Process limit orders (30 orders)
+      actions.push({
+        account: DEX_CONTRACT,
+        name: "processlimit",
+        authorization: [
+          {
+            actor: activeSession.auth.actor.toString(),
+            permission: activeSession.auth.permission.toString(),
+          },
+        ],
+        data: {
+          pair_id: PAIR_ID,
+          max_orders: 30,
+        },
+      });
+
+      // ACTION 4: Process stop-loss/take-profit queue (10 orders)
+      actions.push({
+        account: DEX_CONTRACT,
+        name: "processsltpq",
+        authorization: [
+          {
+            actor: activeSession.auth.actor.toString(),
+            permission: activeSession.auth.permission.toString(),
+          },
+        ],
+        data: {
+          pair_id: PAIR_ID,
+          max_orders: 10,
+        },
+      });
+
+      // ACTION 5: Withdraw all funds from DEX
+      actions.push({
+        account: DEX_CONTRACT,
+        name: "withdrawall",
+        authorization: [
+          {
+            actor: activeSession.auth.actor.toString(),
+            permission: activeSession.auth.permission.toString(),
+          },
+        ],
+        data: {
+          user: activeSession.auth.actor.toString(),
+        },
+      });
+
+      // Execute transaction
+      const result = await activeSession.transact(
+        {
+          actions,
+        },
+        {
+          broadcast: true,
         }
-      }
+      );
+
+      alert(`${orderType} order placed successfully for ${side}`);
+
+      // Reset form
+      setPrice("");
+      setStopPrice("");
+      setLimitPrice("");
+      setAmount("");
+      setTotal("");
+      setValues([5]);
+      setLoading(false);
+
+      await refetchTokens();
+    } catch (e) {
+      console.error("❌ Order failed:", e);
+      alert("Failed to place order");
+      setLoading(false);
     }
-
-    const displayData = formatData(formData);
-
-    alert(displayData);
-
-    console.log("Form Data:", formData);
-  };
-
-  const formatData = (data) => {
-    let output = `📋 ORDER DATA FOR SMART CONTRACT\n`;
-    output += `${"=".repeat(40)}\n\n`;
-
-    output += `Order Type: ${data.orderType?.toUpperCase()}\n`;
-    output += `Side: ${data.side?.toUpperCase()}\n\n`;
-
-    if (data.orderType === "limit") {
-      output += `🎯 LIMIT ORDER PARAMETERS:\n`;
-      output += `- Price: ${data.price} XMD\n`;
-      output += `- Amount: ${data.amount} XPR\n`;
-      output += `- Total: ${data.total} XMD\n\n`;
-
-      output += `📞 Smart Contract Action:\n`;
-      output += `Action: limitorder\n`;
-      output += `Parameters:\n`;
-      output += `  user: "your_username"\n`;
-      output += `  pair_id: 0\n`;
-      output += `  side: "${data.side}"\n`;
-      output += `  price: "${data.price} XMD"\n`;
-      output += `  amount: "${data.amount} XPR"\n`;
-    } else if (data.orderType === "stop-limit") {
-      output += `🛑 STOP-LIMIT ORDER PARAMETERS:\n`;
-      output += `- Stop Price (Trigger): ${data.stopPrice} XMD\n`;
-      output += `- Limit Price: ${data.limitPrice} XMD\n`;
-      output += `- Amount: ${data.amount} XPR\n`;
-      output += `- Total: ${data.total} XMD\n\n`;
-
-      output += `📞 Smart Contract Action:\n`;
-      output += `Action: stoploss\n`;
-      output += `Parameters:\n`;
-      output += `  user: "your_username"\n`;
-      output += `  pair_id: 0\n`;
-      output += `  side: "${data.side}"\n`;
-      output += `  trigger_price: "${data.stopPrice} XMD"\n`;
-      output += `  limit_price: "${data.limitPrice} XMD"\n`;
-      output += `  amount: "${data.amount} XPR"\n`;
-    } else if (data.orderType === "market") {
-      output += `⚡ MARKET ORDER PARAMETERS:\n`;
-
-      if (data.side === "buy") {
-        output += `- Amount to Spend: ${data.total} XMD\n\n`;
-
-        output += `📞 Smart Contract Action:\n`;
-        output += `Action: marketorder\n`;
-        output += `Parameters:\n`;
-        output += `  user: "your_username"\n`;
-        output += `  pair_id: 0\n`;
-        output += `  side: "buy"\n`;
-        output += `  amount: "${data.total} XMD" (quote currency)\n`;
-      } else {
-        output += `- Amount to Sell: ${data.amount} XPR\n\n`;
-
-        output += `📞 Smart Contract Action:\n`;
-        output += `Action: marketorder\n`;
-        output += `Parameters:\n`;
-        output += `  user: "your_username"\n`;
-        output += `  pair_id: 0\n`;
-        output += `  side: "sell"\n`;
-        output += `  amount: "${data.amount} XPR" (base currency)\n`;
-      }
-    }
-
-    return output;
   };
 
   return (
