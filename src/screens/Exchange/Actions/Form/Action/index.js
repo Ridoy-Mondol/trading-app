@@ -6,7 +6,6 @@ import { JsonRpc } from "eosjs";
 import { useWallet } from "../../../../../context/WalletContext";
 import { useTokenBalance } from "../../../../../context/WalletBalance";
 import Icon from "../../../../../components/Icon";
-import { signatureDataSize } from "eosjs/dist/eosjs-numeric";
 
 const Action = ({
   title,
@@ -19,8 +18,7 @@ const Action = ({
   orderType, // "limit", "stop-limit", "market"
   side, // "buy" or "sell"
 }) => {
-  // const [userBalance, setUserBalance] = useState([]);
-  const [values, setValues] = useState([5]);
+  const [values, setValues] = useState([0]);
   const [loading, setLoading] = useState(false);
 
   const [price, setPrice] = useState("");
@@ -28,6 +26,8 @@ const Action = ({
   const [limitPrice, setLimitPrice] = useState("");
   const [amount, setAmount] = useState("");
   const [total, setTotal] = useState("");
+
+  const [availableBalance, setAvailableBalance] = useState("0");
 
   const stepPrice = 5;
   const minPrice = 0;
@@ -37,26 +37,7 @@ const Action = ({
   const { userBalance, loadingTokens, refetchTokens } = useTokenBalance();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
 
-  useEffect(() => {
-    if (orderType === "limit" && price && amount) {
-      const priceValue = parseFloat(price);
-      const amountValue = parseFloat(amount);
-
-      if (!isNaN(priceValue) && !isNaN(amountValue)) {
-        const totalValue = priceValue * amountValue;
-        setTotal(totalValue.toFixed(5));
-      }
-    } else if (orderType === "stop-limit" && limitPrice && amount) {
-      const limitValue = parseFloat(limitPrice);
-      const amountValue = parseFloat(amount);
-
-      if (!isNaN(limitValue) && !isNaN(amountValue)) {
-        const totalValue = limitValue * amountValue;
-        setTotal(totalValue.toFixed(5));
-      }
-    }
-  }, [price, limitPrice, amount, orderType]);
-
+  // Token configurations - MUST be defined BEFORE useEffect
   const TOKEN_XBTC = {
     contract: "xtokens",
     symbol: "XBTC",
@@ -73,6 +54,154 @@ const Action = ({
   const PAIR_ID = 0;
   const BASE_TOKEN = TOKEN_XBTC;
   const QUOTE_TOKEN = TOKEN_XUSDT;
+
+  console.log("u", userBalance);
+  console.log("a", availableBalance);
+
+  useEffect(() => {
+    console.log("userBalance:", userBalance); // Debug log
+    console.log("side:", side); // Debug log
+
+    if (!userBalance || userBalance.length === 0) {
+      console.log("No balance data");
+      setAvailableBalance("0");
+      return;
+    }
+
+    // Determine which token balance to show based on side
+    const targetSymbol =
+      side === "buy" ? QUOTE_TOKEN.symbol : BASE_TOKEN.symbol;
+
+    console.log("Looking for symbol:", targetSymbol);
+
+    const tokenBalance = userBalance.find(
+      (balance) => balance.symbol === targetSymbol
+    );
+
+    console.log("Found balance:", tokenBalance);
+
+    if (tokenBalance && tokenBalance.amount) {
+      setAvailableBalance(tokenBalance.amount.toString());
+    } else {
+      setAvailableBalance("0");
+    }
+  }, [userBalance, side, QUOTE_TOKEN.symbol, BASE_TOKEN.symbol]);
+
+  // Calculate total when price or amount changes (for limit and stop-limit)
+  useEffect(() => {
+    if (orderType === "limit" && price && amount) {
+      const priceValue = parseFloat(price);
+      const amountValue = parseFloat(amount);
+
+      if (!isNaN(priceValue) && !isNaN(amountValue)) {
+        const totalValue = priceValue * amountValue;
+        setTotal(totalValue.toFixed(QUOTE_TOKEN.precision));
+      }
+    } else if (orderType === "stop-limit" && limitPrice && amount) {
+      const limitValue = parseFloat(limitPrice);
+      const amountValue = parseFloat(amount);
+
+      if (!isNaN(limitValue) && !isNaN(amountValue)) {
+        const totalValue = limitValue * amountValue;
+        setTotal(totalValue.toFixed(QUOTE_TOKEN.precision));
+      }
+    }
+  }, [price, limitPrice, amount, orderType]);
+
+  const handleSliderChange = (newValues) => {
+    setValues(newValues);
+    const percentage = newValues[0] / 100;
+    const balance = parseFloat(availableBalance);
+
+    console.log("Slider change:", { percentage, balance, side, orderType }); // Debug
+
+    if (balance <= 0 || isNaN(balance)) {
+      return;
+    }
+
+    if (orderType === "limit") {
+      if (side === "buy") {
+        // Buy: Calculate amount from price
+        const priceValue = parseFloat(price);
+        if (!isNaN(priceValue) && priceValue > 0) {
+          const availableQuote = balance * percentage;
+          const calculatedAmount = availableQuote / priceValue;
+          setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
+          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
+        } else {
+          // No price set, just set total
+          const availableQuote = balance * percentage;
+          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
+        }
+      } else {
+        // ✅ FIX: Sell side for limit orders
+        const availableBase = balance * percentage;
+        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
+
+        const priceValue = parseFloat(price);
+        if (!isNaN(priceValue) && priceValue > 0) {
+          const calculatedTotal = availableBase * priceValue;
+          setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
+        }
+      }
+    } else if (orderType === "stop-limit") {
+      if (side === "buy") {
+        const limitValue = parseFloat(limitPrice);
+        if (!isNaN(limitValue) && limitValue > 0) {
+          const availableQuote = balance * percentage;
+          const calculatedAmount = availableQuote / limitValue;
+          setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
+          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
+        } else {
+          const availableQuote = balance * percentage;
+          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
+        }
+      } else {
+        const availableBase = balance * percentage;
+        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
+
+        const limitValue = parseFloat(limitPrice);
+        if (!isNaN(limitValue) && limitValue > 0) {
+          const calculatedTotal = availableBase * limitValue;
+          setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
+        }
+      }
+    } else if (orderType === "market") {
+      if (side === "buy") {
+        const availableQuote = balance * percentage;
+        setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
+      } else {
+        const availableBase = balance * percentage;
+        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
+      }
+    }
+  };
+
+  // Update slider when amount/total changes manually
+  useEffect(() => {
+    const balance = parseFloat(availableBalance);
+    if (balance <= 0 || isNaN(balance)) return;
+
+    let currentValue = 0;
+
+    if (side === "buy") {
+      const totalValue = parseFloat(total);
+      if (!isNaN(totalValue) && totalValue > 0) {
+        currentValue = (totalValue / balance) * 100;
+      }
+    } else {
+      const amountValue = parseFloat(amount);
+      if (!isNaN(amountValue) && amountValue > 0) {
+        currentValue = (amountValue / balance) * 100;
+      }
+    }
+
+    currentValue = Math.min(Math.max(currentValue, 0), 100);
+
+    if (Math.abs(currentValue - values[0]) > 0.1) {
+      setValues([currentValue]);
+    }
+  }, [amount, total, availableBalance, side, values]);
 
   const formatAsset = (amount, precision, symbol) => {
     const value = parseFloat(amount).toFixed(precision);
@@ -352,9 +481,11 @@ const Action = ({
       <div className={styles.head}>
         <div className={styles.title}>{title}</div>
         <div className={styles.counter}>
-          <Icon name="wallet" size="16" /> {content}
+          <Icon name="wallet" size="16" /> {availableBalance}{" "}
+          {side === "buy" ? QUOTE_TOKEN.symbol : BASE_TOKEN.symbol}
         </div>
       </div>
+
       {showPrice && (
         <label className={styles.field}>
           <div className={styles.label}>Price</div>
@@ -364,11 +495,15 @@ const Action = ({
             name="price"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
+            placeholder="0.001"
+            step="0.001"
+            disabled={loading}
             required
           />
-          <div className={styles.currency}>USDT</div>
+          <div className={styles.currency}>{QUOTE_TOKEN.symbol}</div>
         </label>
       )}
+
       {showStop && (
         <label className={styles.field}>
           <div className={styles.label}>Stop</div>
@@ -378,11 +513,15 @@ const Action = ({
             name="stop"
             value={stopPrice}
             onChange={(e) => setStopPrice(e.target.value)}
+            placeholder="0.001"
+            step="0.001"
+            disabled={loading}
             required
           />
-          <div className={styles.currency}>BTC</div>
+          <div className={styles.currency}>{QUOTE_TOKEN.symbol}</div>
         </label>
       )}
+
       {showLimit && (
         <label className={styles.field}>
           <div className={styles.label}>Limit</div>
@@ -392,11 +531,15 @@ const Action = ({
             name="limit"
             value={limitPrice}
             onChange={(e) => setLimitPrice(e.target.value)}
+            placeholder="0.001"
+            step="0.001"
+            disabled={loading}
             required
           />
-          <div className={styles.currency}>USDT</div>
+          <div className={styles.currency}>{QUOTE_TOKEN.symbol}</div>
         </label>
       )}
+
       <label className={styles.field}>
         <div className={styles.label}>Amount</div>
         <input
@@ -405,16 +548,19 @@ const Action = ({
           name="amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
+          placeholder="0.00000001"
+          step="0.00000001"
+          disabled={loading}
           required
         />
-        <div className={styles.currency}>BTC</div>
+        <div className={styles.currency}>{BASE_TOKEN.symbol}</div>
       </label>
       <Range
         values={values}
         step={stepPrice}
         min={minPrice}
         max={maxPrice}
-        onChange={(values) => setValues(values)}
+        onChange={handleSliderChange}
         renderMark={({ props, index }) => (
           <div
             {...props}
@@ -494,6 +640,7 @@ const Action = ({
           </div>
         )}
       />
+
       <label className={styles.field}>
         <div className={styles.label}>Total</div>
         <input
@@ -502,12 +649,20 @@ const Action = ({
           name="total"
           value={total}
           onChange={(e) => setTotal(e.target.value)}
+          placeholder="0.000000"
+          step="0.000001"
+          disabled={loading}
           required
         />
-        <div className={styles.currency}>BTC</div>
+        <div className={styles.currency}>{QUOTE_TOKEN.symbol}</div>
       </label>
-      <button className={cn(classButton, styles.button)} onClick={handleSubmit}>
-        {buttonText}
+
+      <button
+        className={cn(classButton, styles.button)}
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? "Processing..." : buttonText}
       </button>
     </>
   );
