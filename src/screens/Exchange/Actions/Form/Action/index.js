@@ -1,4 +1,4 @@
-import React, { act, memo, useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import cn from "classnames";
 import styles from "./Action.module.sass";
 import { Range, getTrackBackground } from "react-range";
@@ -29,7 +29,10 @@ const Action = ({
 
   const [availableBalance, setAvailableBalance] = useState("0");
 
-  const stepPrice = 5;
+  // Ref to prevent infinite loops
+  const isUpdatingRef = useRef(false);
+
+  const stepPrice = 1;
   const minPrice = 0;
   const maxPrice = 100;
 
@@ -37,7 +40,7 @@ const Action = ({
   const { userBalance, loadingTokens, refetchTokens } = useTokenBalance();
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
 
-  // Token configurations - MUST be defined BEFORE useEffect
+  // Token configurations
   const TOKEN_XBTC = {
     contract: "xtokens",
     symbol: "XBTC",
@@ -55,30 +58,21 @@ const Action = ({
   const BASE_TOKEN = TOKEN_XBTC;
   const QUOTE_TOKEN = TOKEN_XUSDT;
 
-  console.log("u", userBalance);
-  console.log("a", availableBalance);
-
+  // Fetch balance based on side
   useEffect(() => {
-    console.log("userBalance:", userBalance); // Debug log
-    console.log("side:", side); // Debug log
-
     if (!userBalance || userBalance.length === 0) {
-      console.log("No balance data");
       setAvailableBalance("0");
       return;
     }
 
-    // Determine which token balance to show based on side
+    // Buy side → Quote balance (XUSDT)
+    // Sell side → Base balance (XBTC)
     const targetSymbol =
       side === "buy" ? QUOTE_TOKEN.symbol : BASE_TOKEN.symbol;
-
-    console.log("Looking for symbol:", targetSymbol);
 
     const tokenBalance = userBalance.find(
       (balance) => balance.symbol === targetSymbol
     );
-
-    console.log("Found balance:", tokenBalance);
 
     if (tokenBalance && tokenBalance.amount) {
       setAvailableBalance(tokenBalance.amount.toString());
@@ -87,121 +81,284 @@ const Action = ({
     }
   }, [userBalance, side, QUOTE_TOKEN.symbol, BASE_TOKEN.symbol]);
 
-  // Calculate total when price or amount changes (for limit and stop-limit)
-  useEffect(() => {
-    if (orderType === "limit" && price && amount) {
-      const priceValue = parseFloat(price);
-      const amountValue = parseFloat(amount);
+  // ============================================
+  // CALCULATION FUNCTIONS
+  // ============================================
 
-      if (!isNaN(priceValue) && !isNaN(amountValue)) {
-        const totalValue = priceValue * amountValue;
-        setTotal(totalValue.toFixed(QUOTE_TOKEN.precision));
-      }
-    } else if (orderType === "stop-limit" && limitPrice && amount) {
-      const limitValue = parseFloat(limitPrice);
-      const amountValue = parseFloat(amount);
-
-      if (!isNaN(limitValue) && !isNaN(amountValue)) {
-        const totalValue = limitValue * amountValue;
-        setTotal(totalValue.toFixed(QUOTE_TOKEN.precision));
-      }
-    }
-  }, [price, limitPrice, amount, orderType]);
-
-  const handleSliderChange = (newValues) => {
-    setValues(newValues);
-    const percentage = newValues[0] / 100;
-    const balance = parseFloat(availableBalance);
-
-    console.log("Slider change:", { percentage, balance, side, orderType }); // Debug
-
-    if (balance <= 0 || isNaN(balance)) {
-      return;
-    }
-
+  // Get the relevant price for calculations
+  const getRelevantPrice = () => {
     if (orderType === "limit") {
-      if (side === "buy") {
-        // Buy: Calculate amount from price
-        const priceValue = parseFloat(price);
-        if (!isNaN(priceValue) && priceValue > 0) {
-          const availableQuote = balance * percentage;
-          const calculatedAmount = availableQuote / priceValue;
-          setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
-          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
-        } else {
-          // No price set, just set total
-          const availableQuote = balance * percentage;
-          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
-        }
-      } else {
-        // ✅ FIX: Sell side for limit orders
-        const availableBase = balance * percentage;
-        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
-
-        const priceValue = parseFloat(price);
-        if (!isNaN(priceValue) && priceValue > 0) {
-          const calculatedTotal = availableBase * priceValue;
-          setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
-        }
-      }
+      return parseFloat(price);
     } else if (orderType === "stop-limit") {
-      if (side === "buy") {
-        const limitValue = parseFloat(limitPrice);
-        if (!isNaN(limitValue) && limitValue > 0) {
-          const availableQuote = balance * percentage;
-          const calculatedAmount = availableQuote / limitValue;
-          setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
-          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
-        } else {
-          const availableQuote = balance * percentage;
-          setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
-        }
-      } else {
-        const availableBase = balance * percentage;
-        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
-
-        const limitValue = parseFloat(limitPrice);
-        if (!isNaN(limitValue) && limitValue > 0) {
-          const calculatedTotal = availableBase * limitValue;
-          setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
-        }
-      }
-    } else if (orderType === "market") {
-      if (side === "buy") {
-        const availableQuote = balance * percentage;
-        setTotal(availableQuote.toFixed(QUOTE_TOKEN.precision));
-      } else {
-        const availableBase = balance * percentage;
-        setAmount(availableBase.toFixed(BASE_TOKEN.precision));
-      }
+      return parseFloat(limitPrice);
+    } else {
+      // Market order - would need market price from orderbook
+      // For now, return 0 to indicate no price available
+      return 2;
     }
   };
 
-  // Update slider when amount/total changes manually
-  useEffect(() => {
+  // Update slider based on value
+  const updateSliderFromValue = (value) => {
     const balance = parseFloat(availableBalance);
-    if (balance <= 0 || isNaN(balance)) return;
+    if (balance <= 0 || isNaN(value) || value <= 0) {
+      setValues([0]);
+      return;
+    }
+    const percentage = (value / balance) * 100;
+    const clampedPercentage = Math.min(Math.max(percentage, 0), 100);
+    setValues([clampedPercentage]);
+  };
 
-    let currentValue = 0;
+  // ============================================
+  // SLIDER CHANGE HANDLER
+  // ============================================
+
+  const handleSliderChange = (newValues) => {
+    if (isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    setValues(newValues);
+
+    const percentage = newValues[0] / 100;
+    const balance = parseFloat(availableBalance);
+
+    if (balance <= 0 || isNaN(balance)) {
+      isUpdatingRef.current = false;
+      return;
+    }
 
     if (side === "buy") {
-      const totalValue = parseFloat(total);
-      if (!isNaN(totalValue) && totalValue > 0) {
-        currentValue = (totalValue / balance) * 100;
+      // BUY: Slider updates TOTAL (quote currency)
+      const calculatedTotal = balance * percentage;
+      setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
+
+      // Recalculate AMOUNT from total and price
+      const relevantPrice = getRelevantPrice();
+      if (relevantPrice > 0) {
+        const calculatedAmount = calculatedTotal / relevantPrice;
+        setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
+      } else {
+        // No price available, clear amount
+        setAmount("");
       }
     } else {
-      const amountValue = parseFloat(amount);
-      if (!isNaN(amountValue) && amountValue > 0) {
-        currentValue = (amountValue / balance) * 100;
+      // SELL: Slider updates AMOUNT (base currency)
+      const calculatedAmount = balance * percentage;
+      setAmount(calculatedAmount.toFixed(BASE_TOKEN.precision));
+
+      // Recalculate TOTAL from amount and price
+      const relevantPrice = getRelevantPrice();
+      if (relevantPrice > 0) {
+        const calculatedTotal = calculatedAmount * relevantPrice;
+        setTotal(calculatedTotal.toFixed(QUOTE_TOKEN.precision));
+      } else {
+        // No price available, clear total
+        setTotal("");
       }
     }
 
-    currentValue = Math.min(Math.max(currentValue, 0), 100);
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+  };
 
-    if (Math.abs(currentValue - values[0]) > 0.1) {
-      setValues([currentValue]);
+  // ============================================
+  // PRICE CHANGE HANDLERS
+  // ============================================
+
+  const handlePriceChange = (value) => {
+    if (isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    setPrice(value);
+
+    const priceValue = parseFloat(value);
+    const amountValue = parseFloat(amount);
+    const totalValue = parseFloat(total);
+
+    if (orderType === "limit") {
+      if (side === "buy") {
+        if (!isNaN(amountValue) && amountValue > 0) {
+          const newTotal = amountValue * priceValue;
+          setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+          updateSliderFromValue(newTotal);
+        }
+        // BUY: Total is primary, recalculate amount
+        else if (
+          !isNaN(totalValue) &&
+          totalValue > 0 &&
+          !isNaN(priceValue) &&
+          priceValue > 0
+        ) {
+          const newAmount = totalValue / priceValue;
+          setAmount(newAmount.toFixed(BASE_TOKEN.precision));
+        } else if (isNaN(priceValue) || priceValue <= 0) {
+          setAmount("");
+        }
+      } else {
+        // SELL: Amount is primary, recalculate total
+        if (
+          !isNaN(amountValue) &&
+          amountValue > 0 &&
+          !isNaN(priceValue) &&
+          priceValue > 0
+        ) {
+          const newTotal = amountValue * priceValue;
+          setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+        } else if (isNaN(priceValue) || priceValue <= 0) {
+          setTotal("");
+        }
+      }
     }
-  }, [amount, total, availableBalance, side, values]);
+
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+  };
+
+  const handleLimitPriceChange = (value) => {
+    if (isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    setLimitPrice(value);
+
+    const limitValue = parseFloat(value);
+    const amountValue = parseFloat(amount);
+    const totalValue = parseFloat(total);
+
+    if (orderType === "stop-limit") {
+      if (side === "buy") {
+        // BUY: if amount exists → recalc total + slider
+        if (!isNaN(amountValue) && amountValue > 0) {
+          const newTotal = amountValue * limitValue;
+          setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+          updateSliderFromValue(newTotal);
+        }
+        // BUY: Total is primary, recalculate amount
+        else if (
+          !isNaN(totalValue) &&
+          totalValue > 0 &&
+          !isNaN(limitValue) &&
+          limitValue > 0
+        ) {
+          const newAmount = totalValue / limitValue;
+          setAmount(newAmount.toFixed(BASE_TOKEN.precision));
+        } else if (isNaN(limitValue) || limitValue <= 0) {
+          setAmount("");
+        }
+      } else {
+        // SELL: Amount is primary, recalculate total
+        if (
+          !isNaN(amountValue) &&
+          amountValue > 0 &&
+          !isNaN(limitValue) &&
+          limitValue > 0
+        ) {
+          const newTotal = amountValue * limitValue;
+          setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+        } else if (isNaN(limitValue) || limitValue <= 0) {
+          setTotal("");
+        }
+      }
+    }
+
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+  };
+
+  // ============================================
+  // AMOUNT CHANGE HANDLER
+  // ============================================
+
+  const handleAmountChange = (value) => {
+    if (isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    setAmount(value);
+
+    const amountValue = parseFloat(value);
+    const relevantPrice = getRelevantPrice();
+
+    if (side === "buy") {
+      // BUY: Amount changes → Update total, then slider from total
+      if (!isNaN(amountValue) && amountValue > 0 && relevantPrice > 0) {
+        const newTotal = amountValue * relevantPrice;
+        setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+        // Update slider from total
+        updateSliderFromValue(newTotal);
+      } else {
+        setTotal("");
+        setValues([0]);
+      }
+    } else {
+      // SELL: Amount changes → Update total and slider
+      if (!isNaN(amountValue) && amountValue > 0) {
+        if (relevantPrice > 0) {
+          const newTotal = amountValue * relevantPrice;
+          setTotal(newTotal.toFixed(QUOTE_TOKEN.precision));
+        }
+        // Update slider from amount
+        updateSliderFromValue(amountValue);
+      } else {
+        setTotal("");
+        setValues([0]);
+      }
+    }
+
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+  };
+
+  // ============================================
+  // TOTAL CHANGE HANDLER
+  // ============================================
+
+  const handleTotalChange = (value) => {
+    if (isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    setTotal(value);
+
+    const totalValue = parseFloat(value);
+    const relevantPrice = getRelevantPrice();
+
+    if (side === "buy") {
+      // BUY: Total changes → Update amount and slider
+      if (!isNaN(totalValue) && totalValue > 0) {
+        if (relevantPrice > 0) {
+          const newAmount = totalValue / relevantPrice;
+          setAmount(newAmount.toFixed(BASE_TOKEN.precision));
+        }
+        // Update slider from total
+        updateSliderFromValue(totalValue);
+      } else {
+        setAmount("");
+        setValues([0]);
+      }
+    } else {
+      // SELL: Total changes → Update amount, then slider from amount
+      if (!isNaN(totalValue) && totalValue > 0 && relevantPrice > 0) {
+        const newAmount = totalValue / relevantPrice;
+        setAmount(newAmount.toFixed(BASE_TOKEN.precision));
+        // Update slider from amount
+        updateSliderFromValue(newAmount);
+      } else {
+        setAmount("");
+        setValues([0]);
+      }
+    }
+
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+  };
+
+  // ============================================
+  // FORMAT & SUBMIT
+  // ============================================
 
   const formatAsset = (amount, precision, symbol) => {
     const value = parseFloat(amount).toFixed(precision);
@@ -214,9 +371,10 @@ const Action = ({
       return;
     }
 
+    // Validation
     if (orderType === "limit") {
       if (!price || !amount) {
-        return alert("Please fill in all fields");
+        return alert("Please fill in Price and Amount");
       }
 
       const amountValue = parseFloat(amount);
@@ -227,7 +385,6 @@ const Action = ({
         return alert(`Amount cannot exceed 100 ${BASE_TOKEN.symbol}`);
       }
 
-      // Validate tick size
       const priceValue = parseFloat(price);
       const tickSize = 0.001;
       if ((priceValue * 1000) % (tickSize * 1000) !== 0) {
@@ -237,7 +394,7 @@ const Action = ({
       }
     } else if (orderType === "stop-limit") {
       if (!stopPrice || !limitPrice || !amount) {
-        return alert("Please fill in all fields");
+        return alert("Please fill in Stop, Limit, and Amount");
       }
 
       const amountValue = parseFloat(amount);
@@ -284,19 +441,16 @@ const Action = ({
     try {
       const actions = [];
 
-      // Determine which token to deposit based on side
       const depositToken = side === "buy" ? QUOTE_TOKEN : BASE_TOKEN;
       let depositAmount;
 
       if (side === "buy") {
-        // For buy orders, deposit quote currency
-        depositAmount = orderType === "market" ? total : total;
+        depositAmount = total;
       } else {
-        // For sell orders, deposit base currency
         depositAmount = amount;
       }
 
-      // ACTION 1: Deposit token to DEX
+      // ACTION 1: Deposit
       actions.push({
         account: depositToken.contract,
         name: "transfer",
@@ -318,7 +472,7 @@ const Action = ({
         },
       });
 
-      // ACTION 2: Place order based on type
+      // ACTION 2: Place order
       if (orderType === "limit") {
         actions.push({
           account: DEX_CONTRACT,
@@ -400,7 +554,7 @@ const Action = ({
         });
       }
 
-      // ACTION 3: Process limit orders (30 orders)
+      // ACTION 3: Process limit orders
       actions.push({
         account: DEX_CONTRACT,
         name: "processlimit",
@@ -416,7 +570,7 @@ const Action = ({
         },
       });
 
-      // ACTION 4: Process stop-loss/take-profit queue (10 orders)
+      // ACTION 4: Process stop-loss queue
       actions.push({
         account: DEX_CONTRACT,
         name: "processsltpq",
@@ -432,7 +586,7 @@ const Action = ({
         },
       });
 
-      // ACTION 5: Withdraw all funds from DEX
+      // ACTION 5: Withdraw all
       actions.push({
         account: DEX_CONTRACT,
         name: "withdrawall",
@@ -447,7 +601,6 @@ const Action = ({
         },
       });
 
-      // Execute transaction
       const result = await activeSession.transact(
         {
           actions,
@@ -457,21 +610,28 @@ const Action = ({
         }
       );
 
-      alert(`${orderType} order placed successfully for ${side}`);
+      const orderTypeDisplay =
+        orderType === "stop-limit"
+          ? "Stop-Loss"
+          : orderType.charAt(0).toUpperCase() + orderType.slice(1);
+      const sideDisplay = side.charAt(0).toUpperCase() + side.slice(1);
 
-      // Reset form
+      alert(
+        `✅ ${orderTypeDisplay} ${sideDisplay} Order Placed!\n\nTX: ${result.processed.id}`
+      );
+
       setPrice("");
       setStopPrice("");
       setLimitPrice("");
       setAmount("");
       setTotal("");
-      setValues([5]);
+      setValues([0]);
       setLoading(false);
 
       await refetchTokens();
     } catch (e) {
       console.error("❌ Order failed:", e);
-      alert("Failed to place order");
+      alert(`Failed: ${e.message || e}`);
       setLoading(false);
     }
   };
@@ -494,7 +654,7 @@ const Action = ({
             type="number"
             name="price"
             value={price}
-            onChange={(e) => setPrice(e.target.value)}
+            onChange={(e) => handlePriceChange(e.target.value)}
             placeholder="0.001"
             step="0.001"
             disabled={loading}
@@ -530,7 +690,7 @@ const Action = ({
             type="number"
             name="limit"
             value={limitPrice}
-            onChange={(e) => setLimitPrice(e.target.value)}
+            onChange={(e) => handleLimitPriceChange(e.target.value)}
             placeholder="0.001"
             step="0.001"
             disabled={loading}
@@ -547,14 +707,15 @@ const Action = ({
           type="number"
           name="amount"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => handleAmountChange(e.target.value)}
           placeholder="0.00000001"
           step="0.00000001"
-          disabled={loading}
+          disabled={loading || (orderType === "market" && side === "buy")}
           required
         />
         <div className={styles.currency}>{BASE_TOKEN.symbol}</div>
       </label>
+
       <Range
         values={values}
         step={stepPrice}
@@ -648,10 +809,10 @@ const Action = ({
           type="number"
           name="total"
           value={total}
-          onChange={(e) => setTotal(e.target.value)}
+          onChange={(e) => handleTotalChange(e.target.value)}
           placeholder="0.000000"
           step="0.000001"
-          disabled={loading}
+          disabled={loading || (orderType === "market" && side === "sell")}
           required
         />
         <div className={styles.currency}>{QUOTE_TOKEN.symbol}</div>

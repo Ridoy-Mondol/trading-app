@@ -72,26 +72,26 @@ const Form = ({
         <div className={styles.row}>
           <div className={styles.col}>
             <Action
-              title="Buy BTC"
+              title="Buy XBTC"
               content={contentBuy}
               price={price}
               stop={stop}
               limit={limit}
               classButton="button-green"
-              buttonText="Buy BTC"
+              buttonText="Buy XBTC"
               orderType={orderType}
               side="buy"
             />
           </div>
           <div className={styles.col}>
             <Action
-              title="Sell BTC"
+              title="Sell XBTC"
               content={contentSell}
               price={price}
               stop={stop}
               limit={limit}
               classButton="button-red"
-              buttonText="Sell BTC"
+              buttonText="Sell XBTC"
               orderType={orderType}
               side="sell"
             />
