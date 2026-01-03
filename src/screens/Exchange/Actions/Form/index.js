@@ -5,14 +5,13 @@ import { useMediaQuery } from "react-responsive";
 import Icon from "../../../../components/Icon";
 
 const Form = ({
-  contentBuy,
-  contentSell,
+  currentPair,
   price,
   stop,
   limit,
   visible,
   setValue,
-  orderType
+  orderType,
 }) => {
   const isTablet = useMediaQuery({ query: "(max-width: 1023px)" });
 
@@ -32,13 +31,13 @@ const Form = ({
                 </button>
               </div>
               <Action
-                title="Buy BTC"
-                content={contentBuy}
+                currentPair={currentPair}
+                title={`Buy ${currentPair?.base_symbol?.split(",")[1]}`}
                 price={price}
                 stop={stop}
                 limit={limit}
                 classButton="button-green"
-                buttonText="Buy BTC"
+                buttonText={`Buy ${currentPair?.base_symbol?.split(",")[1]}`}
                 orderType={orderType}
                 side="buy"
               />
@@ -55,13 +54,13 @@ const Form = ({
                 </button>
               </div>
               <Action
-                title="Sell BTC"
-                content={contentSell}
+                currentPair={currentPair}
+                title={`Sell ${currentPair?.base_symbol?.split(",")[1]}`}
                 price={price}
                 stop={stop}
                 limit={limit}
                 classButton="button-red"
-                buttonText="Sell BTC"
+                buttonText={`Sell ${currentPair?.base_symbol?.split(",")[1]}`}
                 orderType={orderType}
                 side="sell"
               />
@@ -72,26 +71,26 @@ const Form = ({
         <div className={styles.row}>
           <div className={styles.col}>
             <Action
-              title="Buy XBTC"
-              content={contentBuy}
+              currentPair={currentPair}
+              title={`Buy ${currentPair?.base_symbol?.split(",")[1]}`}
               price={price}
               stop={stop}
               limit={limit}
               classButton="button-green"
-              buttonText="Buy XBTC"
+              buttonText={`Buy ${currentPair?.base_symbol?.split(",")[1]}`}
               orderType={orderType}
               side="buy"
             />
           </div>
           <div className={styles.col}>
             <Action
-              title="Sell XBTC"
-              content={contentSell}
+              currentPair={currentPair}
+              title={`Sell ${currentPair?.base_symbol?.split(",")[1]}`}
               price={price}
               stop={stop}
               limit={limit}
               classButton="button-red"
-              buttonText="Sell XBTC"
+              buttonText={`Sell ${currentPair?.base_symbol?.split(",")[1]}`}
               orderType={orderType}
               side="sell"
             />

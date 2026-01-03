@@ -8,8 +8,8 @@ import { useTokenBalance } from "../../../../../context/WalletBalance";
 import Icon from "../../../../../components/Icon";
 
 const Action = ({
+  currentPair,
   title,
-  content,
   price: showPrice,
   stop: showStop,
   limit: showLimit,
@@ -41,22 +41,22 @@ const Action = ({
   const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
 
   // Token configurations
-  const TOKEN_XBTC = {
-    contract: "xtokens",
-    symbol: "XBTC",
-    precision: 8,
+  const TOKEN_BASE = {
+    contract: currentPair?.base_contract,
+    symbol: currentPair?.base_symbol?.split(",")[1],
+    precision: currentPair?.base_symbol?.split(",")[0],
   };
 
-  const TOKEN_XUSDT = {
-    contract: "xtokens",
-    symbol: "XUSDT",
-    precision: 6,
+  const TOKEN_QUOTE = {
+    contract: currentPair?.quote_contract,
+    symbol: currentPair?.quote_symbol.split(",")[1],
+    precision: currentPair?.quote_symbol.split(",")[0],
   };
 
   const DEX_CONTRACT = "orderbook";
-  const PAIR_ID = 0;
-  const BASE_TOKEN = TOKEN_XBTC;
-  const QUOTE_TOKEN = TOKEN_XUSDT;
+  const PAIR_ID = currentPair?.pair_id;
+  const BASE_TOKEN = TOKEN_BASE;
+  const QUOTE_TOKEN = TOKEN_QUOTE;
 
   // Fetch balance based on side
   useEffect(() => {
@@ -65,8 +65,8 @@ const Action = ({
       return;
     }
 
-    // Buy side → Quote balance (XUSDT)
-    // Sell side → Base balance (XBTC)
+    // Buy side → Quote balance
+    // Sell side → Base balance
     const targetSymbol =
       side === "buy" ? QUOTE_TOKEN.symbol : BASE_TOKEN.symbol;
 
@@ -710,7 +710,7 @@ const Action = ({
           onChange={(e) => handleAmountChange(e.target.value)}
           placeholder="0.00000001"
           step="0.00000001"
-          disabled={loading || (orderType === "market" && side === "buy")}
+          disabled={loading}
           required
         />
         <div className={styles.currency}>{BASE_TOKEN.symbol}</div>
@@ -722,20 +722,24 @@ const Action = ({
         min={minPrice}
         max={maxPrice}
         onChange={handleSliderChange}
-        renderMark={({ props, index }) => (
-          <div
-            {...props}
-            style={{
-              ...props.style,
-              height: "6px",
-              width: "2px",
-              marginTop: "-2px",
-              borderRadius: "1px",
-              backgroundColor:
-                index * stepPrice < values[0] ? "#3772FF" : "#E6E8EC",
-            }}
-          />
-        )}
+        renderMark={({ props, index }) => {
+          const { key, ...rest } = props;
+          return (
+            <div
+              key={key}
+              {...rest}
+              style={{
+                ...rest.style,
+                height: "6px",
+                width: "2px",
+                marginTop: "-2px",
+                borderRadius: "1px",
+                backgroundColor:
+                  index * stepPrice < values[0] ? "#3772FF" : "#E6E8EC",
+              }}
+            />
+          );
+        }}
         renderTrack={({ props, children }) => (
           <div
             onMouseDown={props.onMouseDown}
@@ -766,40 +770,44 @@ const Action = ({
             </div>
           </div>
         )}
-        renderThumb={({ props, isDragged }) => (
-          <div
-            {...props}
-            style={{
-              ...props.style,
-              height: "18px",
-              width: "18px",
-              borderRadius: "50%",
-              backgroundColor: "#F4F5F6",
-              border: "4px solid #777E90",
-              boxShadow: "0px 8px 16px -8px rgba(15, 15, 15, 0.2)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+        renderThumb={({ props }) => {
+          const { key, ...rest} = props
+          return (
             <div
+              key={key}
+              {...rest}
               style={{
-                position: "absolute",
-                top: "-27px",
-                color: "#FCFCFD",
-                fontWeight: "600",
-                fontSize: "13px",
-                lineHeight: "16px",
-                fontFamily: "Poppins",
-                padding: "2px 6px",
-                borderRadius: "6px",
-                backgroundColor: "#777E90",
+                ...rest.style,
+                height: "18px",
+                width: "18px",
+                borderRadius: "50%",
+                backgroundColor: "#F4F5F6",
+                border: "4px solid #777E90",
+                boxShadow: "0px 8px 16px -8px rgba(15, 15, 15, 0.2)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              {values[0].toFixed(0)}%
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-27px",
+                  color: "#FCFCFD",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  lineHeight: "16px",
+                  fontFamily: "Poppins",
+                  padding: "2px 6px",
+                  borderRadius: "6px",
+                  backgroundColor: "#777E90",
+                }}
+              >
+                {values[0].toFixed(0)}%
+              </div>
             </div>
-          </div>
-        )}
+          );
+        }}
       />
 
       <label className={styles.field}>

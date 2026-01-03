@@ -1,103 +1,59 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import cn from "classnames";
+import { JsonRpc } from "eosjs";
 import styles from "./Currency.module.sass";
 import Icon from "../../../components/Icon";
-
-const navigation = ["All", "Cross", "Isolated"];
-
-const items = [
-  {
-    title: "ETC",
-    currency: "BTC",
-    positive: "0.01052",
-    volume: "4,189",
-  },
-  {
-    title: "NULS",
-    currency: "BTC",
-    negative: "0.00001",
-    volume: "16",
-  },
-  {
-    title: "NEO",
-    currency: "BTC",
-    positive: "0.01057",
-    volume: "199",
-  },
-  {
-    title: "LINK",
-    currency: "BTC",
-    negative: "0.0007",
-    volume: "1,371",
-  },
-  {
-    title: "IOTA",
-    currency: "BTC",
-    positive: "0.0003",
-    volume: "186",
-  },
-  {
-    title: "ETC",
-    currency: "BTC",
-    negative: "0.00017",
-    volume: "833",
-  },
-  {
-    title: "KNC",
-    currency: "BTC",
-    negative: "0.00022",
-    volume: "160",
-  },
-  {
-    title: "WTC",
-    currency: "BTC",
-    negative: "0.0002",
-    volume: "32",
-  },
-  {
-    title: "EOS",
-    currency: "BTC",
-    positive: "0.0022",
-    volume: "1,578",
-  },
-  {
-    title: "BTC",
-    currency: "BTC",
-    positive: "36,779",
-    volume: "3,477,216",
-  },
-  {
-    title: "GAS",
-    currency: "BTC",
-    positive: "0.0002",
-    volume: "4,189",
-  },
-];
+import { useNavigate } from "react-router-dom";
 
 const Currency = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [search, setSearch] = useState("");
+  const [pairs, setPairs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    alert();
+  const navigate = useNavigate();
+  const rpc = new JsonRpc(process.env.REACT_APP_PROTON_ENDPOINT);
+
+  const fetchPairs = async () => {
+    try {
+      setLoading(true);
+      const result = await rpc.get_table_rows({
+        json: true,
+        code: "orderbook",
+        scope: "orderbook",
+        table: "pairs",
+        limit: 100,
+      });
+
+      setPairs(result.rows);
+    } catch (error) {
+      console.error("Failed to fetch pairs:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchPairs();
+  }, []);
+
+  const getSymbol = (token) => token.split(",")[1];
+
+  const filteredPairs = pairs.filter((pair) => {
+    const text = search.toLowerCase();
+
+    const base = getSymbol(pair.base_symbol).toLowerCase();
+    const quote = getSymbol(pair.quote_symbol).toLowerCase();
+
+    return (
+      base.includes(text) ||
+      quote.includes(text) ||
+      `${base}/${quote}`.includes(text)
+    );
+  });
 
   return (
     <div className={styles.currency}>
-      <div className={styles.nav}>
-        {navigation.map((x, index) => (
-          <button
-            className={cn(styles.link, {
-              [styles.active]: index === activeIndex,
-            })}
-            onClick={() => setActiveIndex(index)}
-            key={index}
-          >
-            {x}
-          </button>
-        ))}
-      </div>
-      <form className={styles.form} action="" onSubmit={() => handleSubmit()}>
+      <div className={styles.form}>
         <input
           className={styles.input}
           type="text"
@@ -110,7 +66,7 @@ const Currency = () => {
         <button className={styles.result}>
           <Icon name="search" size="20" />
         </button>
-      </form>
+      </div>
       <div className={styles.table}>
         <div className={styles.row}>
           <div className={styles.col}>
@@ -123,28 +79,37 @@ const Currency = () => {
             <div className="sorting">Volume</div>
           </div>
         </div>
-        {items.map((x, index) => (
+        {filteredPairs.map((pair, index) => (
           <div className={styles.row} key={index}>
             <div className={styles.col}>
               <div className={styles.line}>
                 <button className={cn("favorite", styles.favorite)}>
                   <Icon name="star-outline" size="16" />
                 </button>
-                <div className={styles.info}>
-                  {x.title}
-                  <span>/{x.currency}</span>
+                <div
+                  className={styles.info}
+                  onClick={() =>
+                    navigate(
+                      `/exchange/${getSymbol(pair?.base_symbol)}_${getSymbol(
+                        pair?.quote_symbol
+                      )}`
+                    )
+                  }
+                >
+                  {getSymbol(pair?.base_symbol)}
+                  <span>/{getSymbol(pair?.quote_symbol)}</span>
                 </div>
               </div>
             </div>
             <div className={styles.col}>
-              {x.positive && (
-                <div className={styles.positive}>{x.positive}</div>
+              {pair.positive && (
+                <div className={styles.positive}>{pair.positive}</div>
               )}
-              {x.negative && (
-                <div className={styles.negative}>{x.negative}</div>
+              {pair.negative && (
+                <div className={styles.negative}>{pair.negative}</div>
               )}
             </div>
-            <div className={styles.col}>{x.volume}</div>
+            <div className={styles.col}>{pair.volume}</div>
           </div>
         ))}
       </div>

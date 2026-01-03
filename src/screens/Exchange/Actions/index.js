@@ -5,10 +5,9 @@ import styles from "./Actions.module.sass";
 import Icon from "../../../components/Icon";
 import Form from "./Form";
 
-const navigation = ["Limit", "Stop-limit", "Market"];
 const orderTypes = ["limit", "stop-limit", "market"];
 
-const Actions = () => {
+const Actions = ({ currentPair }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [visibleAction, setVisibleAction] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -27,7 +26,7 @@ const Actions = () => {
     <div className={styles.actions}>
       <div className={styles.head}>
         <div className={styles.nav}>
-          {navigation.map((x, index) => (
+          {orderTypes.map((x, index) => (
             <button
               className={cn(styles.link, {
                 [styles.active]: index === activeIndex,
@@ -49,8 +48,7 @@ const Actions = () => {
       <div className={cn(styles.wrapper, { [styles.show]: visible })}>
         {activeIndex === 0 && (
           <Form
-            contentBuy="10,098.36 USDT"
-            contentSell="1.0356875565 BTC"
+            currentPair={currentPair}
             price={true}
             visible={visibleAction}
             setValue={setVisible}
@@ -59,8 +57,7 @@ const Actions = () => {
         )}
         {activeIndex === 1 && (
           <Form
-            contentBuy="10,098.36 USDT"
-            contentSell="1.0356875565 BTC"
+            currentPair={currentPair}
             stop={true}
             limit={true}
             visible={visibleAction}
@@ -70,8 +67,7 @@ const Actions = () => {
         )}
         {activeIndex === 2 && (
           <Form
-            contentBuy="USDT"
-            contentSell="BTC"
+            currentPair={currentPair}
             limit={true}
             visible={visibleAction}
             setValue={setVisible}
